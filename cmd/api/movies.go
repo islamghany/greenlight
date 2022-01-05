@@ -24,6 +24,30 @@ func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 }
+
+func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Title  string
+		Genres []string
+		data.Filters
+	}
+
+	v := validator.New()
+
+	q := r.URL.Query()
+
+	input.Title = app.readString(q, "title", "")
+	input.Genres = app.readCSV(q, "genres", []string{})
+	input.Filters.Page = app.readInt(q, "page", 1, v)
+	input.Filters.PageSize = app.readInt(q, "page_size", 20, v)
+	input.Filters.Sort = app.readString(q, "sort", "id")
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+	fmt.Fprintf(w, "%+v\n", input)
+}
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Title   string       `json:"title"`
