@@ -10,9 +10,9 @@ import (
 	"os"
 	"time"
 
-	"islamghany.greenlight/internals/data"
-
 	_ "github.com/lib/pq"
+	"islamghany.greenlight/internals/data"
+	"islamghany.greenlight/internals/jsonlog"
 )
 
 // version of the application
@@ -33,7 +33,7 @@ type config struct {
 // app struct to hold the http handlers, helpers and middleware
 type application struct {
 	config config
-	logger *log.Logger
+	logger *jsonlog.Logger
 	models data.Models
 }
 
@@ -50,18 +50,18 @@ func main() {
 	flag.StringVar(&conf.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
 	flag.Parse()
 
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 
 	db, err := openDB(conf)
 	if err != nil {
-		logger.Fatal(err)
+		logger.PrintFatal(err, nil)
 	}
 
 	// Defer a call to db.Close() so that the connection pool is closed before the
 	// main() function exits.
 	defer db.Close()
 
-	logger.Printf("database connection pool established")
+	logger.PrintInfo("database connection pool established", nil)
 
 	app := &application{
 		config: conf,
@@ -70,17 +70,25 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", conf.port),
-		Handler:      app.routes(),
-		IdleTimeout:  time.Minute,
+		Addr:        fmt.Sprintf(":%d", conf.port),
+		Handler:     app.routes(),
+		IdleTimeout: time.Minute,
+		// Create a new Go log.Logger instance with the log.New() function, passing in
+		// our custom Logger as the first parameter. The "" and 0 indicate that the
+		// log.Logger instance should not use a prefix or any flags.
+		ErrorLog:     log.New(logger, "", 0),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
-	logger.Printf("Server is running on port %d in %s mode", app.config.port, conf.env)
+
+	logger.PrintInfo("starting server", map[string]string{
+		"addr": srv.Addr,
+		"env":  conf.env,
+	})
 
 	err = srv.ListenAndServe()
 	if err != nil {
-		logger.Fatal(err)
+		logger.PrintFatal(err, nil)
 	}
 }
 
