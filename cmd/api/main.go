@@ -28,6 +28,11 @@ type config struct {
 		maxIdleConns int
 		maxIdleTime  string
 	}
+	limiter struct {
+		rps     float64
+		burst   int
+		enabled bool
+	}
 }
 
 // app struct to hold the http handlers, helpers and middleware
@@ -48,6 +53,9 @@ func main() {
 	flag.IntVar(&conf.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&conf.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&conf.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
+	flag.Float64Var(&conf.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
+	flag.IntVar(&conf.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
+	flag.BoolVar(&conf.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 	flag.Parse()
 
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
