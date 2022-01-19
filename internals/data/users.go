@@ -102,7 +102,7 @@ func (m UserModel) Insert(user *User) error {
 		RETURNING id, created_at, version
 	`
 
-	args := []interface{}{user.Name, user.Email, user.Password.hash, false}
+	args := []interface{}{user.Name, user.Email, user.Password.hash, user.Activated}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
