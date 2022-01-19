@@ -198,3 +198,37 @@ func (m MovieModel) Delete(id int64) error {
 
 	return nil
 }
+
+func (m UserModel) Update(user *User) error {
+	query := `
+        UPDATE users 
+        SET name = $1, email = $2, password_hash = $3, activated = $4, version = version + 1
+        WHERE id = $5 AND version = $6
+        RETURNING version`
+
+	args := []interface{}{
+		user.Name,
+		user.Email,
+		user.Password.hash,
+		user.Activated,
+		user.ID,
+		user.Version,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Version)
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+			return ErrDuplicateEmail
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
