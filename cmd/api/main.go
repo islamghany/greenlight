@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 	"islamghany.greenlight/internals/data"
 	"islamghany.greenlight/internals/jsonlog"
+	"islamghany.greenlight/internals/mailer"
 )
 
 // version of the application
@@ -30,6 +31,13 @@ type config struct {
 		burst   int
 		enabled bool
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 // app struct to hold the http handlers, helpers and middleware
@@ -37,6 +45,7 @@ type application struct {
 	config config
 	logger *jsonlog.Logger
 	models data.Models
+	mailer mailer.Mailer
 }
 
 func main() {
@@ -53,6 +62,17 @@ func main() {
 	flag.Float64Var(&conf.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
 	flag.IntVar(&conf.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	flag.BoolVar(&conf.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+
+	// Read the SMTP server configuration settings into the config struct, using the
+	// Mailtrap settings as the default values. IMPORTANT: If you're following along,
+	// make sure to replace the default values for smtp-username and smtp-password
+	// with your own Mailtrap credentials.
+	flag.StringVar(&conf.smtp.host, "smtp-host", "smtp.mailtrap.io", "SMTP host")
+	flag.IntVar(&conf.smtp.port, "smtp-port", 465, "SMTP port")
+	flag.StringVar(&conf.smtp.username, "smtp-username", "caff9b7b1769ee", "SMTP username")
+	flag.StringVar(&conf.smtp.password, "smtp-password", "8917ed83525fc7", "SMTP password")
+	flag.StringVar(&conf.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.alexedwards.net>", "SMTP sender")
+
 	flag.Parse()
 
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
@@ -72,6 +92,7 @@ func main() {
 		config: conf,
 		logger: logger,
 		models: data.NewModels(db),
+		mailer: mailer.New(conf.smtp.host, conf.smtp.port, conf.smtp.username, conf.smtp.password, conf.smtp.sender),
 	}
 
 	err = app.serve()
