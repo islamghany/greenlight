@@ -135,3 +135,14 @@ func (app *application) readCSV(q url.Values, key string, defaultValue []string)
 	return strings.Split(s, ",")
 
 }
+
+func (app *application) background(fn func()) {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.PrintError(fmt.Errorf("%s", err), nil)
+			}
+		}()
+		fn()
+	}()
+}
