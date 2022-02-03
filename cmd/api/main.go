@@ -56,6 +56,7 @@ func main() {
 	flag.IntVar(&conf.port, "port", 4000, "API Server port")
 	flag.StringVar(&conf.env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&conf.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "data source name")
+
 	// Read the connection pool settings from command-line flags into the config struct.
 	// Notice the default values that we're using?
 	flag.IntVar(&conf.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
@@ -73,7 +74,7 @@ func main() {
 	flag.IntVar(&conf.smtp.port, "smtp-port", 465, "SMTP port")
 	flag.StringVar(&conf.smtp.username, "smtp-username", "caff9b7b1769ee", "SMTP username")
 	flag.StringVar(&conf.smtp.password, "smtp-password", "8917ed83525fc7", "SMTP password")
-	flag.StringVar(&conf.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.alexedwards.net>", "SMTP sender")
+	flag.StringVar(&conf.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.islamghany.net>", "SMTP sender")
 
 	flag.Parse()
 
