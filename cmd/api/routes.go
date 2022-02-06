@@ -26,5 +26,5 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
 
 	// Wrap the router with the panic recovery middleware.
-	return app.recoverPanic(app.rateLimiter(app.authenticate(router)))
+	return app.recoverPanic(app.enableCORs(app.rateLimiter(app.authenticate(router))))
 }
