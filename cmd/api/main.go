@@ -57,7 +57,7 @@ func main() {
 
 	flag.IntVar(&conf.port, "port", 4000, "API Server port")
 	flag.StringVar(&conf.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&conf.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "data source name")
+	flag.StringVar(&conf.db.dsn, "db-dsn", "", "data source name")
 
 	// Read the connection pool settings from command-line flags into the config struct.
 	// Notice the default values that we're using?
