@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"expvar"
 	"flag"
+	"fmt"
 	"os"
 	"runtime"
 	"sync"
@@ -18,6 +19,10 @@ import (
 
 // version of the application
 const version = "1.0.0"
+
+// Create a buildTime variable to hold the executable binary build time. Note that this
+// must be a string type, as the -X linker flag will only work with string variables.
+var buildTime string
 
 // config
 type config struct {
@@ -78,7 +83,18 @@ func main() {
 	flag.StringVar(&conf.smtp.password, "smtp-password", "8917ed83525fc7", "SMTP password")
 	flag.StringVar(&conf.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.islamghany.net>", "SMTP sender")
 
+	// Create a new version boolean flag with the default value of false.
+	displayVersion := flag.Bool("version", false, "Display version and exit")
+
 	flag.Parse()
+
+	// If the version flag value is true, then print out the version number and
+	// immediately exit.
+	if *displayVersion {
+		fmt.Printf("Version:\t%s\n", version)
+		fmt.Printf("Build time:\t%s\n", buildTime)
+		os.Exit(0)
+	}
 
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 
