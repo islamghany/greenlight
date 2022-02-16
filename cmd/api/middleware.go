@@ -4,7 +4,6 @@ import (
 	"errors"
 	"expvar"
 	"fmt"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/felixge/httpsnoop"
+	"github.com/tomasen/realip"
 	"golang.org/x/time/rate"
 	"islamghany.greenlight/internals/data"
 	"islamghany.greenlight/internals/validator"
@@ -81,13 +81,9 @@ func (app *application) rateLimiter(next http.Handler) http.Handler {
 	// variable.
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if app.config.limiter.enabled {
-			// Extract the client's IP address from the request.
-			ip, _, err := net.SplitHostPort(r.RemoteAddr)
-			//app.logger.PrintInfo(ip, nil)
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-				return
-			}
+			// Use the realip.FromRequest() function to get the client's real IP address.
+			ip := realip.FromRequest(r)
+
 			// Lock the mutex to prevent this code from being executed concurrently.
 			mu.Lock()
 			// Check to see if the IP address already exists in the map. If it doesn't, then
