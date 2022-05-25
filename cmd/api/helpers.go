@@ -150,3 +150,14 @@ func (app *application) background(fn func()) {
 		fn()
 	}()
 }
+
+// func (app *application) sendEmail(sender, subject, body, recipient string) (resp string, id string, err error) {
+// 	message := app.email.NewMessage(sender, subject, body, recipient)
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+// 	defer cancel()
+
+// 	// Send the message with a 10 second timeout
+// 	resp, id, err = app.ma.Send(ctx, message)
+// 	return resp, id, err
+// }

@@ -77,11 +77,11 @@ func main() {
 	// Mailtrap settings as the default values. IMPORTANT: If you're following along,
 	// make sure to replace the default values for smtp-username and smtp-password
 	// with your own Mailtrap credentials.
-	flag.StringVar(&conf.smtp.host, "smtp-host", "smtp.mailtrap.io", "SMTP host")
-	flag.IntVar(&conf.smtp.port, "smtp-port", 465, "SMTP port")
-	flag.StringVar(&conf.smtp.username, "smtp-username", "caff9b7b1769ee", "SMTP username")
-	flag.StringVar(&conf.smtp.password, "smtp-password", "8917ed83525fc7", "SMTP password")
-	flag.StringVar(&conf.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.islamghany.net>", "SMTP sender")
+	flag.StringVar(&conf.smtp.host, "smtp-host", "smtp.gmail.com", "SMTP host")
+	flag.IntVar(&conf.smtp.port, "smtp-port", 587, "SMTP port")
+	flag.StringVar(&conf.smtp.username, "smtp-username", "dump.dumper77@gmail.com", "SMTP email")
+	flag.StringVar(&conf.smtp.password, "smtp-password", os.Getenv("EMAIL_PASSWORD"), "SMTP password")
+	flag.StringVar(&conf.smtp.sender, "smtp-sender", "dump.dumper77@gmail.com", "SMTP sender")
 
 	// Create a new version boolean flag with the default value of false.
 	displayVersion := flag.Bool("version", false, "Display version and exit")
@@ -130,9 +130,7 @@ func main() {
 		config: conf,
 		logger: logger,
 		models: data.NewModels(db),
-		mailer: mailer.New(conf.smtp.host, conf.smtp.port, conf.smtp.username, conf.smtp.password, conf.smtp.sender),
-	}
-
+		mailer: mailer.New(conf.smtp.host, conf.smtp.port, conf.smtp.username, conf.smtp.password, conf.smtp.sender)}
 	err = app.serve()
 	if err != nil {
 		logger.PrintFatal(err, nil)
