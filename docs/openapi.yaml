@@ -21,26 +21,17 @@ paths:
   /healthcheck:
     get:
       description: show that if the server is working correctly or not
+      operationId: healthCheck
       responses:
         200:
-          description: success request
-          content:
-            application/json:
-              schema: 
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: not availble
-                  system_info:
-                    type: object
-                    items:
-                      type: string
+          $ref : "#/components/responses/HealthCheckResponse"
         500:
           $ref: '#/components/responses/ServerError'
                            
   /movies:
     get:
+      tags:
+        - movies
       description: obtain movies (filtering)
       operationId: getAllMovies
       parameters:
@@ -93,12 +84,231 @@ paths:
               schema: 
                 $ref: "#/components/schemas/Movies"
                 
-        422:
+        404:
           $ref: '#/components/responses/NotFoundResponse'
         500:
           $ref: '#/components/responses/ServerError' 
         401:
-          $ref: '#/components/responses/AuthenticationRequiredResponse'        
+          $ref: '#/components/responses/AuthenticationRequiredResponse'  
+      security:
+        - movies_auth:
+          - 'movies:read'     
+    post:
+      tags:
+        - movies
+      description: Create New Movie
+      operationId: createMovie
+      requestBody:
+        $ref: "#/components/requestBodies/CreateMovieBody"
+      responses:
+        201:
+          description: success request 
+          headers:
+            Location:
+              description: the location of the movie
+              schema:
+                type: string
+                example: /v1/movie/4
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  movie: 
+                    $ref: "#/components/schemas/Movie"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"               
+        401:
+          $ref: '#/components/responses/AuthenticationRequiredResponse'  
+      
+      security:
+        - movies_auth:
+          - 'movies:write'
+  /movies/{id}:
+    get:
+      tags:
+        - movies
+      description: obtain individual movie
+      operationId: getMovie
+      parameters:
+        - name: id
+          in: query
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        500:
+          $ref: '#/components/responses/ServerError'
+        404:
+          $ref: "#/components/responses/NotFoundResponse"               
+        401:
+          $ref: '#/components/responses/AuthenticationRequiredResponse' 
+      security:
+        - movies_auth:
+          - 'movies:read'                 
+    patch:
+      tags:
+        - movies
+      description: update Movie
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: query
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateMovieBody'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        500:
+          $ref: '#/components/responses/ServerError'
+        409:
+          $ref: '#/components/responses/EditConflictResponse'
+        400:
+          $ref: '#/components/responses/BadRequestResponse'
+        404:
+          $ref: "#/components/responses/NotFoundResponse"               
+        401:
+          $ref: '#/components/responses/AuthenticationRequiredResponse' 
+      security:
+        - movies_auth:
+          - 'movies:write'
+    delete:
+      tags:
+        - movies
+      description: delete Movie
+      operationId: deleteMovie
+      parameters:
+        - name: id
+          in: query
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64 
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messgae:
+                    type: string
+        500:
+          $ref: '#/components/responses/ServerError'
+        404:
+          $ref: "#/components/responses/NotFoundResponse"               
+        401:
+          $ref: '#/components/responses/AuthenticationRequiredResponse' 
+      security:
+        - movies_auth:
+          - 'movies:write'     
+  /users:
+    post:
+      tags:
+          - users
+      description: Regisster user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+        description: Created user object
+        required: true   
+      responses:
+        201:
+          description: user created
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  user: 
+                    $ref: "#/components/schemas/User"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"            
+  /users/activated:
+    put:
+      tags:
+        - users
+      description: active user after a register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        201: 
+          description: user activated
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  user: 
+                    $ref: "#/components/schemas/User"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse" 
+        409:
+          $ref: "#/components/responses/EditConflictResponse" 
+  /tokens/authentication:
+    post:
+      tags:
+        - tokens
+      description: User login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthenticateUser"  
+      responses:
+        201:
+          description: user activated
+          content: 
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/User"    
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"  
 components:
   schemas:
     Movies:
@@ -145,8 +355,80 @@ components:
       properties:
         error: 
           type: string
-
+    CreateMovie:
+      description: data required for create a movie
+      type: object
+      properties:
+        title: 
+          type: string
+        year:
+          type: integer
+          format: int32
+        geners:
+          type: array
+          items:
+            type: string 
+        runtime:
+          type: string             
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        version:
+          type: string 
+        created_at:
+          type: string
+          format: data 
+    CreateUser:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string     
+    AuthenticateUser:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    Token:
+      type: object
+      properties:
+        plaintext:
+          type: string    
+        Expiry:
+          type: string 
   responses:
+    HealthCheckResponse:
+      description: Success request
+      content:
+        application/json:
+          schema: 
+            type: object
+            properties:
+              status:
+                type: string
+                example: not availble
+              system_info:
+                type: object
+                items:
+                  properties:
+                    environment:
+                      type: string
+                    version: 
+                      type: string
     ServerError:
       description: Server Error
       content:
@@ -197,3 +479,20 @@ components:
           schema:
             allOf:
               - $ref: "#/components/schemas/ErrorResponse"
+  requestBodies:
+    CreateMovieBody:
+      description: movie data
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/CreateMovie"
+    UpdateMovieBody:
+      description: updated movie data              
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/CreateMovie"
+                
