@@ -136,7 +136,7 @@ paths:
       operationId: getMovie
       parameters:
         - name: id
-          in: query
+          in: path
           description: the id of the movie
           required: true
           schema:
@@ -165,7 +165,7 @@ paths:
       operationId: updateUser
       parameters:
         - name: id
-          in: query
+          in: path
           description: the id of the movie
           required: true
           schema:
@@ -200,7 +200,7 @@ paths:
       operationId: deleteMovie
       parameters:
         - name: id
-          in: query
+          in: path
           description: the id of the movie
           required: true
           schema:
