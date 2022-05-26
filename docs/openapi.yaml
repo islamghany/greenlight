@@ -309,6 +309,27 @@ paths:
           $ref: "#/components/responses/FailedValidationResponse"
         401:
           $ref: "#/components/responses/AuthenticationRequiredResponse"  
+  /users/signout:
+    post:
+      tags:
+        - users
+      description: signout user
+      operationId: signoutUser
+      responses:
+        200:
+          description: user has been signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"      
 components:
   schemas:
     Movies:
@@ -410,6 +431,12 @@ components:
           type: string    
         Expiry:
           type: string 
+    SuccessResponse:
+      description: success operation
+      type: object
+      properties:
+        messgae: 
+          type: string     
   responses:
     HealthCheckResponse:
       description: Success request

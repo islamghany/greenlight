@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http"
+	"os"
 	"time"
 
 	"islamghany.greenlight/internals/data"
@@ -150,6 +151,27 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 
 	// Send the updated user details to the client in a JSON response.
 	err = app.writeJson(w, http.StatusOK, envelope{"user": user}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) signedUserOutHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	err := app.models.Tokens.DeleteAllForUser(data.ScopeActivation, user.ID)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
+	cookie := &http.Cookie{
+		Value: "",
+		Name:  os.Getenv("GREENLIGHT_TOKEN"),
+	}
+	http.SetCookie(w, cookie)
+
+	err = app.writeJson(w, http.StatusOK, envelope{"message": "signed out successfully."}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
