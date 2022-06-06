@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 
@@ -151,13 +152,18 @@ func (app *application) background(fn func()) {
 	}()
 }
 
-// func (app *application) sendEmail(sender, subject, body, recipient string) (resp string, id string, err error) {
-// 	message := app.email.NewMessage(sender, subject, body, recipient)
-
-// 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-// 	defer cancel()
-
-// 	// Send the message with a 10 second timeout
-// 	resp, id, err = app.ma.Send(ctx, message)
-// 	return resp, id, err
+// func (app *application) addCookies(w http.ResponseWriter, name, value string, ttl time.Duration){
+// 	cookie := http.Cookie{
+// 		Name:    name,
+// 		Value:   value,
+// 		Expires: ttl,
+// 	}
+// 	http.SetCookie(w, &cookie)
 // }
+func (app *application) removeCookies(w http.ResponseWriter) {
+	cookie := &http.Cookie{
+		Value: "",
+		Name:  os.Getenv("GREENLIGHT_TOKEN"),
+	}
+	http.SetCookie(w, cookie)
+}

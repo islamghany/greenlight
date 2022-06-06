@@ -1,39 +1,21 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-make: *** No rule to make target 'all'.  Stop.
-
 # GNU Make 4.2.1
- 
 # Built for x86_64-pc-linux-gnu
- 
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
- 
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
- 
 # This is free software: you are free to change and redistribute it.
- 
 # There is NO WARRANTY, to the extent permitted by law.
- 
 
- 
-# Make data base, printed on Thu May 26 18:07:28 2022
- 
+# Make data base, printed on Mon Jun  6 15:03:48 2022
 
 # Variables
- 
 
- 
 # 'override' directive
- 
 GNUMAKEFLAGS := 
- 
 # automatic
- 
 <D = $(patsubst %/,%,$(dir $<))
- 
 # automatic
- 
 ?F = $(notdir $?)
- 
 # environment
 PAPERSIZE = letter
 # environment
@@ -69,7 +51,7 @@ EMAIL_PASSWORD = islamghany3@
 # environment
 _ = /usr/share/code/code
 # environment
-JOURNAL_STREAM = 9:49574
+JOURNAL_STREAM = 9:51537
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # makefile (from '.envrc', line 1)
@@ -91,9 +73,9 @@ DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-MANAGERPID = 1790
+MANAGERPID = 1807
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-33660988-41ab-426c-8c3b-9cabf980753b.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-2ae09211-7a94-4be4-ac11-0d8aef52097f.sock
 # environment
 LC_NAME = en_US.UTF-8
 # environment
@@ -113,7 +95,7 @@ GJS_DEBUG_OUTPUT = stderr
 # environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
-SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/1997,unix/islamghany:/tmp/.ICE-unix/1997
+SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2015,unix/islamghany:/tmp/.ICE-unix/2015
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -127,7 +109,7 @@ VSCODE_LOG_STACK = false
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = a677341cd9154d048a8036ae4c6ec34c
+INVOCATION_ID = 991e233dcc6241cd9e95ec927f571164
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -137,7 +119,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 67263
+GIO_LAUNCHED_DESKTOP_FILE_PID = 49543
 # automatic
 %F = $(notdir $%)
 # environment
@@ -149,7 +131,7 @@ PWD = /home/islamghany/Drive/Code/Go/greenlight
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 1966
+SSH_AGENT_PID = 1983
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -250,6 +232,8 @@ LC_ALL = C
 GJS_DEBUG_TOPICS = JS ERROR;JS LOG
 # automatic
 ^F = $(notdir $^)
+# makefile (from '.envrc', line 3)
+GREENLIGHT_TOKEN = greenlight-token
 # default
 SUFFIXES := 
 # environment
@@ -267,11 +251,11 @@ LC_ADDRESS = en_US.UTF-8
 # environment
 LANG = C
 # environment
-VSCODE_PID = 67263
+VSCODE_PID = 49543
 # environment
 NVM_RC_VERSION = 
 # variable set hash-table stats:
-# Load=121/1024=12%, Rehash=0, Collisions=20/149=13%
+# Load=122/1024=12%, Rehash=0, Collisions=20/150=13%
 
 # Pattern-specific Variable Values
 
@@ -295,6 +279,9 @@ all:
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has not been updated.
+ 
+make: *** No rule to make target 'all'.  Stop.
+
 
 .PHONY: help confirm run/api db/psql db/migrations/new db/migrations/up audit vendor build/api
 #  Implicit rule search has not been done.
@@ -313,7 +300,6 @@ db/migrations/new:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
- 
 #  Last modified 2022-04-23 13:54:30.683908797
 #  File has been updated.
 #  Successfully updated.
@@ -385,7 +371,7 @@ db/migrations/up: confirm
 # Not a target:
 .envrc:
 #  Implicit rule search has been done.
-#  Last modified 2022-05-25 18:05:59.332132419
+#  Last modified 2022-05-26 18:13:36.626860032
 #  File has been updated.
 #  Successfully updated.
 
@@ -423,6 +409,6 @@ vendor:
 # strcache performance: lookups = 74 / hit rate = 59%
 # hash-table stats:
 # Load=30/8192=0%, Rehash=0, Collisions=1/74=1%
-# Finished Make data base on Thu May 26 18:07:28 2022
+# Finished Make data base on Mon Jun  6 15:03:48 2022
 
  

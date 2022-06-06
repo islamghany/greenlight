@@ -58,7 +58,6 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-
 	// Add the cookie to the reqeust
 	cookie := &http.Cookie{
 		HttpOnly: true,
@@ -66,8 +65,8 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 		Expires:  token.Expiry,
 		Secure:   true,
 		Value:    token.Plaintext,
+		Path:     "/",
 	}
-
 	http.SetCookie(w, cookie)
 
 	// Encode the token to JSON and send it in the response along with a 201 Created
