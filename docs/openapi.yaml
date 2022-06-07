@@ -421,6 +421,8 @@ components:
           format: int64
         name:
           type: string
+        activated: 
+          type: boolean
         email:
           type: string
         password:
