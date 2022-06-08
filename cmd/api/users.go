@@ -86,6 +86,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 	})
 
+	app.addUserCookies(w, token)
 	err = app.writeJson(w, http.StatusCreated, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -171,7 +172,7 @@ func (app *application) signedUserOutHandler(w http.ResponseWriter, r *http.Requ
 		app.serverErrorResponse(w, r, err)
 	}
 
-	app.removeCookies(w)
+	app.removeUsersCookies(w)
 
 	err = app.writeJson(w, http.StatusOK, envelope{"message": "signed out successfully."}, nil)
 	if err != nil {

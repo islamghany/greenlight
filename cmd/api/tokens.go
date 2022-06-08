@@ -59,16 +59,8 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-	// Add the cookie to the reqeust
-	cookie := &http.Cookie{
-		HttpOnly: true,
-		Name:     os.Getenv("GREENLIGHT_TOKEN"),
-		Expires:  token.Expiry,
-		Secure:   true,
-		Value:    token.Plaintext,
-		Path:     "/",
-	}
-	http.SetCookie(w, cookie)
+
+	app.addUserCookies(w, token)
 
 	// Encode the token to JSON and send it in the response along with a 201 Created
 	// status code.

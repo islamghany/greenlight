@@ -7,10 +7,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
+	"time"
 
+	"islamghany.greenlight/internals/data"
 	"islamghany.greenlight/internals/validator"
 
 	"github.com/julienschmidt/httprouter"
@@ -152,18 +153,32 @@ func (app *application) background(fn func()) {
 	}()
 }
 
-// func (app *application) addCookies(w http.ResponseWriter, name, value string, ttl time.Duration){
-// 	cookie := http.Cookie{
-// 		Name:    name,
-// 		Value:   value,
-// 		Expires: ttl,
-// 	}
-// 	http.SetCookie(w, &cookie)
-// }
-func (app *application) removeCookies(w http.ResponseWriter) {
-	cookie := &http.Cookie{
-		Value: "",
-		Name:  os.Getenv("GREENLIGHT_TOKEN"),
+func (app *application) addCookies(w http.ResponseWriter, name, value string, ttl time.Time) {
+	cookie := http.Cookie{
+		Name:     name,
+		Value:    value,
+		Expires:  ttl,
+		Secure:   true,
+		Path:     "/",
+		HttpOnly: true,
 	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, &cookie)
+}
+func (app *application) removeCookies(w http.ResponseWriter, name string) {
+	cookie := http.Cookie{
+		Name:  name,
+		Value: "",
+		Path:  "/",
+	}
+	http.SetCookie(w, &cookie)
+}
+
+func (app *application) addUserCookies(w http.ResponseWriter, token *data.Token) {
+	app.addCookies(w, app.config.vars.greenlightUserTokenCookie, token.Plaintext, token.Expiry)
+	app.addCookies(w, app.config.vars.greenlightUserIDCookie, fmt.Sprint(token.UserID), token.Expiry)
+}
+
+func (app *application) removeUsersCookies(w http.ResponseWriter) {
+	app.removeCookies(w, app.config.vars.greenlightUserTokenCookie)
+	app.removeCookies(w, app.config.vars.greenlightUserIDCookie)
 }
