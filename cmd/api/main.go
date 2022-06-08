@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 	"islamghany.greenlight/internals/data"
 	"islamghany.greenlight/internals/jsonlog"
@@ -46,6 +47,12 @@ type config struct {
 		password string
 		sender   string
 	}
+	redis struct {
+		host     string
+		port     string
+		username string
+		password string
+	}
 }
 
 // app struct to hold the http handlers, helpers and middleware
@@ -55,6 +62,7 @@ type application struct {
 	models data.Models
 	mailer mailer.Mailer
 	wg     sync.WaitGroup
+	rdb    *redis.Client
 }
 
 func main() {
@@ -83,6 +91,11 @@ func main() {
 	flag.StringVar(&conf.smtp.password, "smtp-password", os.Getenv("EMAIL_PASSWORD"), "SMTP password")
 	flag.StringVar(&conf.smtp.sender, "smtp-sender", "dump.dumper77@gmail.com", "SMTP sender")
 
+	// Read the redis configration setting into the config struct
+	flag.StringVar(&conf.redis.host, "redis-host", os.Getenv("REDIS_HOST"), "redis host string")
+	flag.StringVar(&conf.redis.port, "redis-port", os.Getenv("REDIS_PORT"), "redis port")
+	flag.StringVar(&conf.redis.username, "redis-username", "", "redis username string")
+	flag.StringVar(&conf.redis.password, "redis-password", os.Getenv("REDIS_PASSWORD"), "redis password string")
 	// Create a new version boolean flag with the default value of false.
 	displayVersion := flag.Bool("version", false, "Display version and exit")
 
@@ -97,6 +110,14 @@ func main() {
 	}
 
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
+
+	rdb, err := openRedis(conf.redis.host, conf.redis.port, conf.redis.username, conf.redis.password)
+	if err != nil {
+		logger.PrintFatal(err, nil)
+	}
+	defer rdb.Close()
+
+	logger.PrintInfo("redis connection pool established", nil)
 
 	db, err := openDB(conf)
 	if err != nil {
@@ -177,4 +198,22 @@ func openDB(conf config) (*sql.DB, error) {
 
 	// Return the sql.DB connection pool.
 	return db, nil
+}
+
+func openRedis(host, port, username, password string) (*redis.Client, error) {
+
+	rdb := redis.NewClient(&redis.Options{
+		Password: password,
+		Addr:     fmt.Sprint(host, ":", port),
+		//Username: username,
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := rdb.Ping(ctx).Err()
+	if err != nil {
+		return nil, err
+	}
+	return rdb, nil
 }

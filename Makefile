@@ -25,6 +25,9 @@ confirm:
 run/api:
 	@go run ./cmd/api -db-dsn=${GREENLIGHT_DB_DSN}
 
+## run/dev: run the sandbox/main.go app
+run/dev:
+	@go run ./sandbox/main.go
 ## db/psql: connect to the database using psql
 .PHONY: db/psql
 db/psql:

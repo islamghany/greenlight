@@ -330,7 +330,33 @@ paths:
         422:
           $ref: "#/components/responses/FailedValidationResponse"
         401:
-          $ref: "#/components/responses/AuthenticationRequiredResponse"  
+          $ref: "#/components/responses/AuthenticationRequiredResponse"
+  /tokens/reset-password-token:
+    post: 
+      tags:
+        - tokens
+      description: create reset password token
+      operationId: createResetPasswordToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailObject"
+      responses:
+        201:
+          description: token has been sent to user's email   
+          content:
+            application/json:
+              schema:
+                $ref : "#/components/schemas/SuccessResponse"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"                 
   /users/signout:
     post:
       tags:
@@ -354,6 +380,15 @@ paths:
           $ref: "#/components/responses/AuthenticationRequiredResponse"      
 components:
   schemas:
+    EmailObject:
+      description: email string inside an object
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          example: islamghany3@gmail.com
     Movies:
       description: a list to hold the movies models
       type: array

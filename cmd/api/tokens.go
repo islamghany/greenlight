@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -72,6 +73,59 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 	// Encode the token to JSON and send it in the response along with a 201 Created
 	// status code.
 	err = app.writeJson(w, http.StatusCreated, envelope{"user": user}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) createResetPasswordTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email string `json:"email"`
+	}
+
+	err := app.readJSON(w, r, &input)
+
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	v := validator.New()
+
+	if data.ValidateEmail(v, input.Email); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+	user, err := app.models.Users.GetByEmail(input.Email)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.invalidCredentialsResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	token, err := app.models.Tokens.New(user.ID, 30*time.Minute, data.ScopePasswordRecovery)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	app.background(func() {
+		data := map[string]interface{}{
+			"clientUrl": fmt.Sprint(os.Getenv("CLIENT_URL"), "/reset-password/", token.Plaintext),
+			"userID":    token.UserID,
+		}
+
+		err = app.mailer.Send(user.Email, "reset_password.temp", data)
+		if err != nil {
+			app.logger.PrintError(err, nil)
+		}
+	})
+
+	err = app.writeJson(w, http.StatusCreated, envelope{"message": "an mail was sent to your email address please follow instruction so that you can reset your password."}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
