@@ -20,6 +20,7 @@ type Movie struct {
 	Runtime   Runtime   `json:"runtime,omitempty"`
 	Genres    []string  `json:"genres"`
 	Version   int32     `json:"version"`
+	Count     int32     `json:"count,omitempty"`
 }
 
 func ValidateMovie(v *validator.Validator, movie *Movie) {
@@ -46,8 +47,9 @@ type MovieModel struct {
 func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
 
 	query := fmt.Sprintf(`
-	SELECT count(*) OVER(), id, created_at, title, year, runtime, genres, version
+	SELECT count(*) OVER(), id, created_at, title, year, runtime, genres, version, views.count as view_count
 	FROM movies
+	INNER JOIN views ON id = views.movie_id
 	WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '') 
 	AND (genres @> $2 OR $2 = '{}')     
 	ORDER BY %s %s, id ASC
@@ -78,6 +80,7 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 			&movie.Runtime,
 			pq.Array(&movie.Genres),
 			&movie.Version,
+			&movie.Count,
 		)
 		if err != nil {
 			return nil, Metadata{}, err
@@ -103,7 +106,17 @@ func (m MovieModel) Insert(movie *Movie) error {
 	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	return m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+	if err != nil {
+		return err
+	}
+	query = `
+		INSERT INTO views (movie_id)
+		VALUES ($1);
+	`
+	m.DB.QueryRowContext(ctx, query, movie.ID)
+
+	return nil
 }
 
 func (m MovieModel) Get(id int64) (*Movie, error) {
@@ -112,9 +125,12 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 	}
 
 	query := `
-		SELECT  id, created_at, title, year, runtime, genres, version
+		SELECT  id, created_at, title, year, runtime, genres, version count
 		FROM movies
-		WHERE id = $1
+		inner join views on views.movie_id = id
+		WHERE id = $1;
+		FROM movies
+		WHERE id = $1;
 	`
 	var movie Movie
 
@@ -129,6 +145,7 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 		&movie.Runtime,
 		pq.Array(&movie.Genres),
 		&movie.Version,
+		&movie.Count,
 	)
 
 	if err != nil {
@@ -137,6 +154,12 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 		}
 		return nil, err
 	}
+	query = `
+	UPDATE views
+	SET count = count+1
+	WHERE movie_id = $1;
+	`
+	m.DB.QueryRowContext(ctx, query, id)
 	return &movie, nil
 }
 

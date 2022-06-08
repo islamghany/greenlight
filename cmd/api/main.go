@@ -106,7 +106,7 @@ func main() {
 	flag.StringVar(&conf.redis.host, "redis-host", conf.vars.redisHost, "redis host string")
 	flag.StringVar(&conf.redis.port, "redis-port", conf.vars.redisPort, "redis port")
 	flag.StringVar(&conf.redis.username, "redis-username", "", "redis username string")
-	flag.StringVar(&conf.redis.password, "redis-password", conf.vars.emailPassword, "redis password string")
+	flag.StringVar(&conf.redis.password, "redis-password", conf.vars.redisPassword, "redis password string")
 	// Create a new version boolean flag with the default value of false.
 	displayVersion := flag.Bool("version", false, "Display version and exit")
 
@@ -212,7 +212,6 @@ func openDB(conf config) (*sql.DB, error) {
 }
 
 func openRedis(host, port, username, password string) (*redis.Client, error) {
-
 	rdb := redis.NewClient(&redis.Options{
 		Password: password,
 		Addr:     fmt.Sprint(host, ":", port),
@@ -233,8 +232,9 @@ func loadEnvVars(conf *config) {
 	conf.vars.dbDSN = os.Getenv("GREENLIGHT_DB_DSN")
 	conf.vars.greenlightUserTokenCookie = os.Getenv("GREENLIGHT_TOKEN")
 	conf.vars.greenlightUserIDCookie = os.Getenv("GREENLIGHT_USERID_TOKEN")
+	conf.vars.emailPassword = os.Getenv("EMAIL_PASSWORD")
 	conf.vars.clientUrl = os.Getenv("CLIENT_URL")
 	conf.vars.redisHost = os.Getenv("REDIS_HOST")
 	conf.vars.redisPort = os.Getenv("REDIS_PORT")
-	conf.vars.redisPassword = os.Getenv("GREENLIGHT_TOKEN")
+	conf.vars.redisPassword = os.Getenv("REDIS_PASSWORD")
 }
