@@ -129,8 +129,6 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 		FROM movies
 		inner join views on views.movie_id = id
 		WHERE id = $1;
-		FROM movies
-		WHERE id = $1;
 	`
 	var movie Movie
 
