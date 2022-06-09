@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Jun  7 23:52:57 2022
+# Make data base, printed on Thu Jun  9 12:46:18 2022
 
 # Variables
 
@@ -77,7 +77,7 @@ VSCODE_VERBOSE_LOGGING = true
 # environment
 MANAGERPID = 1832
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-77bdd17c-ab05-4d32-9f47-923d7cc8a8d1.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-180ae28d-7352-4e32-ae55-f02aca691ba9.sock
 # environment
 LC_NAME = en_US.UTF-8
 # environment
@@ -88,7 +88,7 @@ GOPROXY = https://proxy.golang.org,direct
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
 PATH = /home/islamghany/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
-# makefile (from 'Makefile', line 77)
+# makefile (from 'Makefile', line 80)
 current_time = $(shell date --iso-8601=seconds)
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
@@ -102,7 +102,7 @@ SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2051,unix/islamghany:/tmp/.IC
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
 GOPATH = /home/islamghany/go
-# makefile (from 'Makefile', line 79)
+# makefile (from 'Makefile', line 82)
 linker_flags = '-s -X main.buildTime=${current_time} -X main.version=${git_description}'
 # environment
 XDG_MENU_PREFIX = gnome-
@@ -121,7 +121,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 3352
+GIO_LAUNCHED_DESKTOP_FILE_PID = 94066
 # automatic
 %F = $(notdir $%)
 # environment
@@ -148,11 +148,11 @@ LC_MEASUREMENT = en_US.UTF-8
 VSCODE_CODE_CACHE_PATH = /home/islamghany/.config/Code/CachedData/57fd6d0195bb9b9d1b49f6da5db789060795de47
 # environment
 LOGNAME = islamghany
+ 
 # environment
 APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 NVM_CD_FLAGS = -q
- 
 # automatic
 +F = $(notdir $+)
 # environment
@@ -163,7 +163,8 @@ VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 GNOME_DESKTOP_SESSION_ID = this-is-deprecated
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
- 
+# makefile (from '.envrc', line 4)
+GREENLIGHT_USERID_TOKEN = greenlight-userId-token
 # environment
 LC_TIME = en_US.UTF-8
 # default
@@ -190,6 +191,8 @@ XDG_CURRENT_DESKTOP = Unity
 LESS = -R
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
+# makefile (from '.envrc', line 8)
+REDIS_PASSWORD = dqFbTrJAXOfhaPaEdHZti8R3HRwcGdx7
 # environment
 LC_TELEPHONE = en_US.UTF-8
 # default
@@ -205,8 +208,10 @@ VSCODE_IPC_HOOK = /run/user/1000/vscode-3e32e185-1.67.0-main.sock
 # makefile
 MAKEFLAGS = pqrR
 # environment
+ 
 MFLAGS = -pqrR
 # automatic
+ 
 *D = $(patsubst %/,%,$(dir $*))
 # environment
 NVM_DIR = /home/islamghany/.nvm
@@ -218,7 +223,7 @@ GDK_BACKEND = x11
 LC_PAPER = en_US.UTF-8
 # environment
 QT_ACCESSIBILITY = 1
-# makefile (from 'Makefile', line 78)
+# makefile (from 'Makefile', line 81)
 git_description = $(shell git describe --always --dirty)
 # default
 MAKEFILES := 
@@ -232,7 +237,7 @@ GREENLIGHT_DB_DSN = postgres://greenlight:islamghany@localhost/greenlight
 PAGER = less
 # environment
 LC_ALL = C
-# makefile (from '.envrc', line 4)
+# makefile (from '.envrc', line 5)
 CLIENT_URL = http://localhost:3000/
 # environment
 GJS_DEBUG_TOPICS = JS ERROR;JS LOG
@@ -246,6 +251,7 @@ SUFFIXES :=
 CHROME_DESKTOP = code-url-handler.desktop
 # environment
 WINDOWPATH = 2
+ 
 # default
 .INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
 # environment
@@ -254,15 +260,18 @@ LC_IDENTIFICATION = en_US.UTF-8
 .RECIPEPREFIX := 
 # environment
 LC_ADDRESS = en_US.UTF-8
+# makefile (from '.envrc', line 6)
+REDIS_HOST = redis-19934.c245.us-east-1-3.ec2.cloud.redislabs.com
 # environment
 LANG = C
+# makefile (from '.envrc', line 7)
+REDIS_PORT = 19934
 # environment
-VSCODE_PID = 3352
+VSCODE_PID = 94066
 # environment
 NVM_RC_VERSION = 
- 
 # variable set hash-table stats:
-# Load=123/1024=12%, Rehash=0, Collisions=20/151=13%
+# Load=127/1024=12%, Rehash=0, Collisions=20/155=13%
 
 # Pattern-specific Variable Values
 
@@ -270,15 +279,14 @@ NVM_RC_VERSION =
 
 # Directories
 
-# . (device 2049, inode 11273009): 16 files, no impossibilities.
+# . (device 2049, inode 11273009): 17 files, no impossibilities.
 
-# 16 files, no impossibilities in 1 directories.
+# 17 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
 # No implicit rules.
 
- 
 # Files
 
 # Not a target:
@@ -286,6 +294,7 @@ all:
 #  Command line target.
 #  Implicit rule search has been done.
 #  File does not exist.
+ 
 #  File has not been updated.
 
 .PHONY: help confirm run/api db/psql db/migrations/new db/migrations/up audit vendor build/api
@@ -298,14 +307,14 @@ db/migrations/new:
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 36):
+#  recipe to execute (from 'Makefile', line 39):
 	@echo 'Creating migration files for ${name}...'
 	migrate create -seq -ext=.sql -dir=./migrations ${name}
 
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-04-23 13:54:30.683908797
+#  Last modified 2022-06-08 12:31:33.845105402
 #  File has been updated.
 #  Successfully updated.
 
@@ -331,9 +340,8 @@ build/api:
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 84):
+#  recipe to execute (from 'Makefile', line 87):
 	@echo 'Building cmd/api...'
- 
 	go build -ldflags=${linker_flags} -o=./bin/api ./cmd/api
 	#GOOS=linux GOARCH=amd64 go build -ldflags=${linker_flags} -o=./bin/linux_amd64/api ./cmd/api
 
@@ -348,7 +356,7 @@ audit: vendor
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 53):
+#  recipe to execute (from 'Makefile', line 56):
 	@echo 'Formatting code...'
 	go fmt ./...
 	@echo 'Vetting code...'
@@ -362,7 +370,7 @@ db/psql:
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 31):
+#  recipe to execute (from 'Makefile', line 34):
 	psql ${GREENLIGHT_DB_DSN}
 
 db/migrations/up: confirm
@@ -370,17 +378,24 @@ db/migrations/up: confirm
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 42):
+#  recipe to execute (from 'Makefile', line 45):
 	@echo 'Running up migrations...'
 	migrate -path ./migrations -database ${GREENLIGHT_DB_DSN} up
 
 # Not a target:
 .envrc:
 #  Implicit rule search has been done.
-#  Last modified 2022-06-07 19:54:00.6882347
+#  Last modified 2022-06-08 15:29:43.540755372
 #  File has been updated.
- 
 #  Successfully updated.
+
+run/dev:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 30):
+ 
+	@go run ./sandbox/main.go
 
 run/api:
 #  Phony target (prerequisite of .PHONY).
@@ -395,28 +410,27 @@ vendor:
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 65):
+#  recipe to execute (from 'Makefile', line 68):
 	@echo 'Tidying and verifying module dependencies...'
 	go mod tidy
- 
 	go mod verify
 	@echo 'Vendoring dependencies...'
 	go mod vendor
 
 # files hash-table stats:
-# Load=15/1024=1%, Rehash=0, Collisions=0/54=0%
+# Load=16/1024=2%, Rehash=0, Collisions=0/55=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 30 / storage = 254 B / avg = 8 B
-# current buf: size = 8162 B / used = 254 B / count = 30 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 32 / storage = 270 B / avg = 8 B
+# current buf: size = 8162 B / used = 270 B / count = 32 / avg = 8 B
 
-# strcache performance: lookups = 74 / hit rate = 59%
+# strcache performance: lookups = 77 / hit rate = 58%
 # hash-table stats:
-# Load=30/8192=0%, Rehash=0, Collisions=1/74=1%
-# Finished Make data base on Tue Jun  7 23:52:57 2022
+# Load=32/8192=0%, Rehash=0, Collisions=1/77=1%
+# Finished Make data base on Thu Jun  9 12:46:18 2022
 
  
