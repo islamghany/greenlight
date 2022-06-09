@@ -20,7 +20,14 @@ func (app *application) addLikeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check if the current user id is equal to the user id that was sent.
+	// // check if the current user id is equal to the user id that was sent.
+
+	// user := app.contextGetUser(r)
+
+	// if user.ID != input.UserID {
+	// 	app.authenticationRequiredResponse(w, r)
+	// 	return
+	// }
 
 	v := validator.New()
 	data.ValidateLikeInput(v, input.UserID, input.MovieID)

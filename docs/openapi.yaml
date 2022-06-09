@@ -82,7 +82,7 @@ paths:
           content: 
             application/json:
               schema: 
-                $ref: "#/components/schemas/Movies"
+                $ref: "#/components/schemas/MoviesResponse"
                 
         404:
           $ref: '#/components/responses/NotFoundResponse'
@@ -389,11 +389,16 @@ components:
         email:
           type: string
           example: islamghany3@gmail.com
-    Movies:
-      description: a list to hold the movies models
-      type: array
-      items:
-        $ref: "#/components/schemas/Movie"  
+    MoviesResponse:
+      description: a list of movies and metadata about it 
+      type: object
+      properties:
+        metadata: 
+            $ref: "#/components/schemas/MetaData"
+        movies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Movie"       
     Movie:
       description: model containg the movie schema
       type: object
@@ -427,6 +432,26 @@ components:
         version: 
           type: string
           description: is used to indicate how many times this movies had been changed, it help so that we can make it not in the critical section    
+        count:
+          type: integer
+          description: the number of the views to this movie
+        likes:
+          type: integer
+          description: the number of likes on this movie  
+    MetaData:
+      description: the meta about a number of items
+      type: object
+      properties:
+        current_page:
+          type: integer
+        page_size:
+          type: integer
+        first_page:
+          type: integer 
+        last_page:
+          type: integer
+        total_reocrds:
+          type: integer   
     ErrorResponse:
       description: Server Error
       type: object
