@@ -21,6 +21,7 @@ type Movie struct {
 	Genres    []string  `json:"genres"`
 	Version   int32     `json:"version"`
 	Count     int32     `json:"count,omitempty"`
+	Likes     int64     `json:"likes,omitempty"`
 }
 
 func ValidateMovie(v *validator.Validator, movie *Movie) {
@@ -47,7 +48,8 @@ type MovieModel struct {
 func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
 
 	query := fmt.Sprintf(`
-	SELECT count(*) OVER(), id, created_at, title, year, runtime, genres, version, views.count as view_count
+	SELECT count(*) OVER(), id, created_at, title, year, runtime, genres, version, views.count as view_count,
+		(SELECT count(*) FROM likes WHERE movies.id = likes.movie_id) as likes
 	FROM movies
 	INNER JOIN views ON id = views.movie_id
 	WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '') 
@@ -81,6 +83,7 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 			pq.Array(&movie.Genres),
 			&movie.Version,
 			&movie.Count,
+			&movie.Likes,
 		)
 		if err != nil {
 			return nil, Metadata{}, err
@@ -125,11 +128,19 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 	}
 
 	query := `
-		SELECT  id, created_at, title, year, runtime, genres, version count
+		SELECT  id, created_at, title, year, runtime, genres, version, views.count as count, A.count as likesCount
 		FROM movies
 		inner join views on views.movie_id = id
+		LEFT JOIN (SELECT COUNT(*) as count, A.movie_id
+		FROM likes A
+		GROUP BY A.movie_id
+		) A ON A.movie_id = movies.id
 		WHERE id = $1;
 	`
+	// LEFT JOIN (SELECT COUNT(*) as count, movie_id,  sum(CASE WHEN likes.user_id = 145 then 1 else 0 end) as currentUserLiked
+	//        FROM likes
+	//        ) A
+	// 	   ON A.movie_id = movies.id
 	var movie Movie
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -144,6 +155,7 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 		pq.Array(&movie.Genres),
 		&movie.Version,
 		&movie.Count,
+		&movie.Likes,
 	)
 
 	if err != nil {
