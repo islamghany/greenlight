@@ -19,13 +19,14 @@ var AnonymousUser = &User{}
 
 // user model
 type User struct {
-	ID        int64     `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	Password  password  `json:"-"`
-	Activated bool      `json:"activated"`
-	Version   int       `json:"-"`
+	ID            int64     `json:"id"`
+	Name          string    `json:"name"`
+	Email         string    `json:"email"`
+	CreatedAt     time.Time `json:"created_at"`
+	Password      password  `json:"-"`
+	Activated     bool      `json:"activated"`
+	Version       int       `json:"-"`
+	IsCurrentUser bool      `json:"is_current_user,omitempty"`
 }
 
 func (u *User) IsAnonymous() bool {
@@ -157,7 +158,34 @@ func (m UserModel) GetByEmail(email string) (*User, error) {
 	return &user, nil
 
 }
-
+func (m UserModel) GetByID(id, currentUserID int64) (*User, error) {
+	query := `
+		SELECT id,created_at,name, email, activated, version
+		FROM users
+		WHERE id = $1;
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	var user User
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.Name,
+		&user.Email,
+		&user.Activated,
+		&user.Version,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	user.IsCurrentUser = bool(currentUserID == id)
+	return &user, nil
+}
 func (m UserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
 	// Calculate the SHA-256 hash of the plaintext token provided by the client.
 	// Remember that this returns a byte *array* with length 32, not a slice.

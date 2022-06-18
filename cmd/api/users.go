@@ -159,10 +159,42 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		app.serverErrorResponse(w, r, err)
 	}
 }
-func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) getCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := app.contextGetUser(r)
 
 	err := app.writeJson(w, http.StatusOK, envelope{"user": user}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+
+	currentUserID := int64(-1)
+
+	u := app.contextGetUser(r)
+	if !u.IsAnonymous() {
+		currentUserID = u.ID
+	}
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	user, err := app.models.Users.GetByID(id, currentUserID)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJson(w, http.StatusOK, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
