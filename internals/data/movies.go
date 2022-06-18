@@ -13,15 +13,18 @@ import (
 
 // JSON-encoded output.
 type Movie struct {
-	ID        int64     `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	Title     string    `json:"title"`
-	Year      int32     `json:"year,omitempty"`
-	Runtime   Runtime   `json:"runtime,omitempty"`
-	Genres    []string  `json:"genres"`
-	Version   int32     `json:"version"`
-	Count     int32     `json:"count,omitempty"`
-	Likes     int64     `json:"likes,omitempty"`
+	ID               int64     `json:"id"`
+	CreatedAt        time.Time `json:"created_at"`
+	Title            string    `json:"title"`
+	Year             int32     `json:"year,omitempty"`
+	Runtime          Runtime   `json:"runtime,omitempty"`
+	Genres           []string  `json:"genres"`
+	Version          int32     `json:"version"`
+	Count            int32     `json:"count,omitempty"`
+	Likes            int64     `json:"likes,omitempty"`
+	UserName         string    `json:"username"`
+	UserID           int64     `json:"user_id"`
+	CurrentUserLiked int32     `json:"currentUserLiked,omitempty,"`
 }
 
 func ValidateMovie(v *validator.Validator, movie *Movie) {
@@ -48,10 +51,11 @@ type MovieModel struct {
 func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
 
 	query := fmt.Sprintf(`
-	SELECT count(*) OVER(), id, created_at, title, year, runtime, genres, version, views.count as view_count,
+	SELECT count(*) OVER(), movie_id as id, movies.created_at  as created_at, title, year, runtime, genres, movies.version as version, views.count as view_count, users.name as username, user_id,
 		(SELECT count(*) FROM likes WHERE movies.id = likes.movie_id) as likes
 	FROM movies
 	INNER JOIN views ON id = views.movie_id
+	INNER JOIN users ON user_id = users.id
 	WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '') 
 	AND (genres @> $2 OR $2 = '{}')     
 	ORDER BY %s %s, id ASC
@@ -83,6 +87,8 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 			pq.Array(&movie.Genres),
 			&movie.Version,
 			&movie.Count,
+			&movie.UserName,
+			&movie.UserID,
 			&movie.Likes,
 		)
 		if err != nil {
@@ -98,15 +104,15 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
 	return movies, metadata, nil
 }
-func (m MovieModel) Insert(movie *Movie) error {
+func (m MovieModel) Insert(movie *Movie, userID int64) error {
 
 	query := `
-		INSERT INTO movies (title, year, runtime, genres)
-		VALUES ($1,$2,$3,$4)
+		INSERT INTO movies (title, year, runtime, genres,user_id)
+		VALUES ($1,$2,$3,$4,$5)
 		RETURNING id, created_at, version
 	`
 
-	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
+	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), userID}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
@@ -128,19 +134,42 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 	}
 
 	query := `
-		SELECT  id, created_at, title, year, runtime, genres, version, views.count as count, A.count as likesCount
-		FROM movies
-		inner join views on views.movie_id = id
-		LEFT JOIN (SELECT COUNT(*) as count, A.movie_id
-		FROM likes A
-		GROUP BY A.movie_id
-		) A ON A.movie_id = movies.id
-		WHERE id = $1;
+	SELECT
+  movies.id as id,
+  movies.created_at as created_at,
+  title,
+  year,
+  runtime,
+  genres,
+  movies.version as version,
+  views.count as count,
+  coalesce(A.count,0) as likesCount,
+  users.name as username,
+  movies.user_id,
+  coalesce(A.currentUserLiked,0) as currentUserLiked
+FROM
+  movies
+  inner join views on views.movie_id = movies.id
+  inner join users on users.id = user_id
+  LEFT JOIN (
+    SELECT
+      COUNT(*) as count,
+      A.movie_id,
+      sum(
+        CASE
+          WHEN A.user_id = user_id then 1
+          else 0
+        end
+      ) as currentUserLiked
+    FROM
+      likes A
+    GROUP BY
+      A.movie_id
+  ) A ON A.movie_id = movies.id
+WHERE
+  movies.id = $1;
 	`
-	// LEFT JOIN (SELECT COUNT(*) as count, movie_id,  sum(CASE WHEN likes.user_id = 145 then 1 else 0 end) as currentUserLiked
-	//        FROM likes
-	//        ) A
-	// 	   ON A.movie_id = movies.id
+
 	var movie Movie
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -156,6 +185,9 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 		&movie.Version,
 		&movie.Count,
 		&movie.Likes,
+		&movie.UserName,
+		&movie.UserID,
+		&movie.CurrentUserLiked,
 	)
 
 	if err != nil {

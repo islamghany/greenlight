@@ -149,6 +149,10 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	// This user is already verfied then he can write to any thing.
+	// adding the write permission
+	err = app.models.Permissions.AddForUser(user.ID, "movies:write")
+
 	// Send the updated user details to the client in a JSON response.
 	err = app.writeJson(w, http.StatusOK, envelope{"user": user}, nil)
 	if err != nil {

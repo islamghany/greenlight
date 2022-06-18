@@ -90,7 +90,8 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	err = app.models.Movies.Insert(movie)
+	user := app.contextGetUser(r)
+	err = app.models.Movies.Insert(movie, user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
