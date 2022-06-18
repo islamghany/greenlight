@@ -4,10 +4,13 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"golang.org/x/crypto/bcrypt"
+	"islamghany.greenlight/internals/marshing"
 	"islamghany.greenlight/internals/validator"
 )
 
@@ -31,6 +34,10 @@ type User struct {
 
 func (u *User) IsAnonymous() bool {
 	return u == AnonymousUser
+}
+
+func (u *User) MarshalBinary() ([]byte, error) {
+	return json.Marshal(u)
 }
 
 type password struct {
@@ -99,7 +106,8 @@ func ValidateUser(v *validator.Validator, user *User) {
 // user
 
 type UserModel struct {
-	DB *sql.DB
+	DB  *sql.DB
+	RDB *redis.Client
 }
 
 func (m UserModel) Insert(user *User) error {
@@ -234,4 +242,28 @@ func (m UserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error)
 
 	// Return the matching user.
 	return &user, nil
+}
+
+func (m UserModel) CacheUserbyID(userID int64, user map[string]interface{}) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	bUser, err := marshing.MarshalBinary(user)
+	err = m.RDB.Set(ctx, UsersKey(userID), bUser, time.Hour).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m UserModel) CacheRetrieveUserByID(id int64) (*string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := m.RDB.Get(ctx, UsersKey(id)).Result()
+
+	if err != nil || result == "" {
+		return nil, err
+	}
+	return &result, nil
 }

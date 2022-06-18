@@ -3,6 +3,8 @@ package data
 import (
 	"database/sql"
 	"errors"
+
+	"github.com/go-redis/redis/v8"
 )
 
 var (
@@ -18,10 +20,10 @@ type Models struct {
 	Likes       LikeModel
 }
 
-func NewModels(db *sql.DB) Models {
+func NewModels(db *sql.DB, rdb *redis.Client) Models {
 	return Models{
 		Movies:      MovieModel{DB: db},
-		Users:       UserModel{DB: db},
+		Users:       UserModel{DB: db, RDB: rdb},
 		Tokens:      TokenModel{DB: db},
 		Permissions: PermissionModel{DB: db},
 		Likes:       LikeModel{DB: db},

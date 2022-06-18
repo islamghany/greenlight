@@ -72,7 +72,6 @@ type application struct {
 	models data.Models
 	mailer mailer.Mailer
 	wg     sync.WaitGroup
-	rdb    *redis.Client
 }
 
 func main() {
@@ -161,7 +160,7 @@ func main() {
 	app := &application{
 		config: conf,
 		logger: logger,
-		models: data.NewModels(db),
+		models: data.NewModels(db, rdb),
 		mailer: mailer.New(conf.smtp.host, conf.smtp.port, conf.smtp.username, conf.smtp.password, conf.smtp.sender)}
 	err = app.serve()
 	if err != nil {

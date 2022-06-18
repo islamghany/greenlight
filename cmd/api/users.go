@@ -170,34 +170,50 @@ func (app *application) getCurrentUserHandler(w http.ResponseWriter, r *http.Req
 
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
-
-	currentUserID := int64(-1)
-
-	u := app.contextGetUser(r)
-	if !u.IsAnonymous() {
-		currentUserID = u.ID
-	}
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
+	currentUserID := int64(-1)
 
-	user, err := app.models.Users.GetByID(id, currentUserID)
+	currentUser := app.contextGetUser(r)
+
+	if !currentUser.IsAnonymous() {
+		currentUserID = currentUser.ID
+	}
+
+	isCached := true
+	jsonUser, err := app.models.Users.CacheRetrieveUserByID(id)
 
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
-		default:
+		isCached = false
+	}
+
+	if !isCached {
+		user, err := app.models.Users.GetByID(id, currentUserID)
+
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+		err = app.models.Users.CacheUserbyID(user.ID, envelope{"user": user})
+		if err != nil {
+			app.logger.PrintError(err, nil)
+		}
+
+		err = app.writeJson(w, http.StatusOK, envelope{"user": user}, nil)
+		if err != nil {
 			app.serverErrorResponse(w, r, err)
 		}
-		return
+	} else {
+		app.writeJsonString(w, *jsonUser)
 	}
 
-	err = app.writeJson(w, http.StatusOK, envelope{"user": user}, nil)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
 }
 func (app *application) signedUserOutHandler(w http.ResponseWriter, r *http.Request) {
 	user := app.contextGetUser(r)

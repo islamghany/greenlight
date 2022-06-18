@@ -31,6 +31,12 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 	return id, nil
 }
 
+func (app *application) writeJsonString(w http.ResponseWriter, data string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	io.WriteString(w, data)
+
+}
 func (app *application) writeJson(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	jsonData, err := json.MarshalIndent(data, "", "\t")
 
