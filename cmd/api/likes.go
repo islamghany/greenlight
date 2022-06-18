@@ -11,7 +11,6 @@ import (
 func (app *application) addLikeHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		MovieID int64 `json:"movie_id"`
-		UserID  int64 `json:"user_id"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -20,24 +19,19 @@ func (app *application) addLikeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// // check if the current user id is equal to the user id that was sent.
+	// check if the current user id is equal to the user id that was sent.
 
-	// user := app.contextGetUser(r)
-
-	// if user.ID != input.UserID {
-	// 	app.authenticationRequiredResponse(w, r)
-	// 	return
-	// }
+	user := app.contextGetUser(r)
 
 	v := validator.New()
-	data.ValidateLikeInput(v, input.UserID, input.MovieID)
+	data.ValidateLikeInput(v, input.MovieID)
 
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	err = app.models.Likes.Insert(input.UserID, input.MovieID)
+	err = app.models.Likes.Insert(user.ID, input.MovieID)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateLike):

@@ -30,8 +30,8 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/reset-password-token", app.createResetPasswordTokenHandler)
 
-	router.HandlerFunc(http.MethodPost, "/v1/likes", app.addLikeHandler)
-	router.HandlerFunc(http.MethodDelete, "/v1/likes/:id", app.deleteLikeHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/likes", app.requirePermission("movies:write", app.addLikeHandler))
+	router.HandlerFunc(http.MethodDelete, "/v1/likes/:id", app.requirePermission("movies:write", app.deleteLikeHandler))
 
 	router.Handler(http.MethodGet, "/debug/vars", expvar.Handler())
 

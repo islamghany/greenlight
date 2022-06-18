@@ -20,9 +20,8 @@ type Like struct {
 	UserID  int64 `json:"user_id"`
 }
 
-func ValidateLikeInput(v *validator.Validator, userID, movieID int64) {
-	v.Check(userID != 0, "user_id", "must be provided")
-	v.Check(userID > 0, "user_id", "invalid user id")
+func ValidateLikeInput(v *validator.Validator, movieID int64) {
+
 	v.Check(movieID != 0, "user_id", "must be provided")
 	v.Check(movieID > 0, "user_id", "invalid movie id")
 }
