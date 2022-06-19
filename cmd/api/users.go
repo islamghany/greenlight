@@ -201,10 +201,14 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		err = app.models.Users.CacheUserbyID(user.ID, envelope{"user": user})
-		if err != nil {
-			app.logger.PrintError(err, nil)
-		}
+
+		// cache in background
+		app.background(func() {
+			err = app.models.Users.CacheUserbyID(user.ID, envelope{"user": user})
+			if err != nil {
+				app.logger.PrintError(err, nil)
+			}
+		})
 
 		err = app.writeJson(w, http.StatusOK, envelope{"user": user}, nil)
 		if err != nil {

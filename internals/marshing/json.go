@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-func MarshalBinary(data map[string]interface{}) ([]byte, error) {
+func MarshalBinary(data interface{}) ([]byte, error) {
 	return json.Marshal(data)
 }
 

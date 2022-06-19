@@ -223,3 +223,7 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 		app.serverErrorResponse(w, r, err)
 	}
 }
+
+func (app *application) GetMostViewsMovivesHandler(w http.ResponseWriter, r *http.Request) {
+
+}

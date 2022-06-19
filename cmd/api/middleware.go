@@ -44,6 +44,22 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 	})
 }
 
+func (app *application) cacheReinvalidate(next http.Handler) http.Handler {
+
+	go func() {
+		for {
+			time.Sleep(3 * time.Hour)
+			err := app.models.Movies.CacheMost20PercentageView()
+			if err != nil {
+				app.logger.PrintError(err, nil)
+			}
+		}
+	}()
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r)
+	})
+}
 func (app *application) rateLimiter(next http.Handler) http.Handler {
 
 	// Any code here will run only once, when we wrap something with the middleware.

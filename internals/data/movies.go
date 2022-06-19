@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/lib/pq"
+	"islamghany.greenlight/internals/marshing"
 	"islamghany.greenlight/internals/validator"
 )
 
@@ -45,7 +47,8 @@ func ValidateMovie(v *validator.Validator, movie *Movie) {
 }
 
 type MovieModel struct {
-	DB *sql.DB
+	DB  *sql.DB
+	RDB *redis.Client
 }
 
 func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
@@ -296,4 +299,119 @@ func (m UserModel) Update(user *User) error {
 	}
 
 	return nil
+}
+
+func (m MovieModel) GetMostViews() ([]*Movie, error) {
+	query := `
+	select m.id as id, created_at, title, year, runtime, genres, version, user_id, count from movies m 
+	join "views" v on v.movie_id = m.id
+	order by v.count desc
+	limit 10;
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	movies := []*Movie{}
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var movie Movie
+
+		err := rows.Scan(
+			&movie.ID,
+			&movie.CreatedAt,
+			&movie.Title,
+			&movie.Year,
+			&movie.Runtime,
+			pq.Array(&movie.Genres),
+			&movie.Version,
+			&movie.UserID,
+			&movie.Count,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add the Movie struct to the slice.
+		movies = append(movies, &movie)
+
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return movies, nil
+}
+
+func (m *MovieModel) CacheMost20PercentageView() error {
+	fmt.Println("begin")
+	query := `
+		SELECT count(*) as number from movies m
+		join "views" v on v.movie_id = m.id;
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var totalMovies int64
+	err := m.DB.QueryRowContext(ctx, query).Scan(&totalMovies)
+	if err != nil {
+		return err
+	}
+
+	limit := 10
+	//math.Round(float64(20 / 100 * totalMovies))
+
+	query = `
+	select  m.id as id, created_at, title, year, runtime, genres, version, user_id, count from movies m 
+	join "views" v on v.movie_id = m.id
+	order by v.count desc
+	limit $1
+	`
+
+	var jsonMovies [][]byte
+
+	rows, err := m.DB.QueryContext(ctx, query, limit)
+
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	fmt.Println("fetch the movies")
+	var keys []string
+	for rows.Next() {
+		var movie Movie
+		err := rows.Scan(
+			&movie.ID,
+			&movie.CreatedAt,
+			&movie.Title,
+			&movie.Year,
+			&movie.Runtime,
+			pq.Array(&movie.Genres),
+			&movie.Version,
+			&movie.UserID,
+			&movie.Count,
+		)
+		if err != nil {
+			return err
+		}
+		keys = append(keys, MoviesKey(movie.ID))
+		jsonMovie, err := marshing.MarshalBinary(movie)
+		if err != nil {
+			return err
+		}
+		jsonMovies = append(jsonMovies, jsonMovie)
+
+	}
+	fmt.Println("full arrays")
+	if err = rows.Err(); err != nil {
+		return err
+	}
+
+	err = PipeSet(m.RDB, keys, jsonMovies, 3*time.Hour)
+	fmt.Println("finish successfully")
+	return err
+
 }

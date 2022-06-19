@@ -22,7 +22,7 @@ type Models struct {
 
 func NewModels(db *sql.DB, rdb *redis.Client) Models {
 	return Models{
-		Movies:      MovieModel{DB: db},
+		Movies:      MovieModel{DB: db, RDB: rdb},
 		Users:       UserModel{DB: db, RDB: rdb},
 		Tokens:      TokenModel{DB: db},
 		Permissions: PermissionModel{DB: db},
