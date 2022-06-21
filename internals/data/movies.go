@@ -365,10 +365,40 @@ func (m *MovieModel) CacheMost20PercentageView() error {
 	//math.Round(float64(20 / 100 * totalMovies))
 
 	query = `
-	select  m.id as id, created_at, title, year, runtime, genres, version, user_id, count from movies m 
-	join "views" v on v.movie_id = m.id
-	order by v.count desc
-	limit $1
+	SELECT
+  movies.id as id,
+  movies.created_at as created_at,
+  title,
+  year,
+  runtime,
+  genres,
+  movies.version as version,
+  views.count as count,
+  coalesce(A.count,0) as likesCount,
+  users.name as username,
+  movies.user_id,
+  coalesce(A.currentUserLiked,0) as currentUserLiked
+FROM
+  movies
+  inner join views on views.movie_id = movies.id
+  inner join users on users.id = user_id
+  LEFT JOIN (
+    SELECT
+      COUNT(*) as count,
+      A.movie_id,
+      sum(
+        CASE
+          WHEN A.user_id = user_id then 1
+          else 0
+        end
+      ) as currentUserLiked
+    FROM
+      likes A
+    GROUP BY
+      A.movie_id
+  ) A ON A.movie_id = movies.id
+  order by views.count Desc
+limit $1;
 	`
 
 	rows, err := m.DB.QueryContext(ctx, query, limit)
@@ -390,8 +420,11 @@ func (m *MovieModel) CacheMost20PercentageView() error {
 			&movie.Runtime,
 			pq.Array(&movie.Genres),
 			&movie.Version,
-			&movie.UserID,
 			&movie.Count,
+			&movie.Likes,
+			&movie.UserName,
+			&movie.UserID,
+			&movie.CurrentUserLiked,
 		)
 		if err != nil {
 			return err
@@ -418,7 +451,6 @@ func (m *MovieModel) CacheMost20PercentageView() error {
 }
 
 func (m MovieModel) CacheGetMovie(key string) (*Movie, error) {
-	var movie Movie
 
 	res, err := m.RDB.HGetAll(ctx, key).Result()
 	if err != nil {
@@ -428,13 +460,5 @@ func (m MovieModel) CacheGetMovie(key string) (*Movie, error) {
 		return nil, ErrRecordNotFound
 	}
 
-	var dest map[string]interface{}
-	mapstructure.Decode(res, &dest)
-
-	dest["genres"] = DeserializeGenres(res["genres"])
-	dest["runtime"] = DeserializeRuntime(res["runtime"])
-	mapstructure.Decode(dest, &movie)
-
-	movie.CreatedAt, _ = time.Parse(time.RFC3339, res["created_at"])
-	return &movie, nil
+	return DeserializeMovie(res), nil
 }

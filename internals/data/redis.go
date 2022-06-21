@@ -55,6 +55,37 @@ func DeserializeRuntime(val string) int32 {
 	return int32(i)
 }
 
+func deserialize32Int(s string) int32 {
+
+	i, _ := strconv.ParseInt(s, 10, 64)
+
+	return int32(i)
+}
+func deserialize64Int(s string) int64 {
+
+	i, _ := strconv.ParseInt(s, 10, 64)
+	return i
+
+}
+
+func DeserializeMovie(input map[string]string) *Movie {
+	var movie Movie
+	movie.ID = deserialize64Int(input["id"])
+	movie.Title = input["title"]
+	movie.CreatedAt, _ = time.Parse(time.RFC3339, input["created_at"])
+	movie.Genres = DeserializeGenres(input["genres"])
+	movie.Runtime = Runtime(DeserializeRuntime(input["runtime"]))
+	movie.CurrentUserLiked = deserialize32Int(input["currentUserLiked"])
+	movie.Year = deserialize32Int(input["year"])
+	movie.UserID = deserialize64Int(input["user_id"])
+	movie.Likes = deserialize64Int(input["likes"])
+	movie.UserName = input["username"]
+	movie.Version = deserialize32Int(input["version"])
+	movie.Count = deserialize32Int(input["count"])
+
+	return &movie
+}
+
 // *************** Helpers
 
 func PipeSet(rdb *redis.Client, keys []string, values []map[string]interface{}, ttl time.Duration) error {
