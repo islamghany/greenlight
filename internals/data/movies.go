@@ -15,18 +15,17 @@ import (
 
 // JSON-encoded output.
 type Movie struct {
-	ID               int64     `json:"id" redis:"id" mapstructure:"id" `
-	CreatedAt        time.Time `json:"created_at" redis:"created_at" mapstructure:"created_at"`
-	Title            string    `json:"title" redis:"title" mapstructure:"title"`
-	Year             int32     `json:"year,omitempty" redis:"year,omitempty" mapstructure:"year,omitempty"`
-	Runtime          Runtime   `json:"runtime,omitempty" redis:"runtime,omitempty" mapstructure:"runtime,omitempty"`
-	Genres           []string  `json:"genres" redis:"genres" mapstructure:"genres"`
-	Version          int32     `json:"version" redis:"version" mapstructure:"version"`
-	Count            int32     `json:"count,omitempty" redis:"ount,omitempty" mapstructure:"ount,omitempty"`
-	Likes            int64     `json:"likes,omitempty" redis:"likes,omitempty" mapstructure:"likes,omitempty"`
-	UserName         string    `json:"username,omitempty" redis:"username,omitempty" mapstructure:"username,omitempty"`
-	UserID           int64     `json:"user_id,omitempty" redis:"user_id,omitempty" mapstructure:"user_id,omitempty"`
-	CurrentUserLiked int32     `json:"currentUserLiked,omitempty" redis:"currentUserLiked,omitempty" mapstructure:"currentUserLiked,omitempty"`
+	ID        int64     `json:"id" redis:"id" mapstructure:"id" `
+	CreatedAt time.Time `json:"created_at" redis:"created_at" mapstructure:"created_at"`
+	Title     string    `json:"title" redis:"title" mapstructure:"title"`
+	Year      int32     `json:"year,omitempty" redis:"year,omitempty" mapstructure:"year,omitempty"`
+	Runtime   Runtime   `json:"runtime,omitempty" redis:"runtime,omitempty" mapstructure:"runtime,omitempty"`
+	Genres    []string  `json:"genres" redis:"genres" mapstructure:"genres"`
+	Version   int32     `json:"version" redis:"version" mapstructure:"version"`
+	Count     int32     `json:"count,omitempty" redis:"count,omitempty" mapstructure:"count,omitempty"`
+	Likes     int64     `json:"likes,omitempty" redis:"likes,omitempty" mapstructure:"likes,omitempty"`
+	UserName  string    `json:"username,omitempty" redis:"username,omitempty" mapstructure:"username,omitempty"`
+	UserID    int64     `json:"user_id,omitempty" redis:"user_id,omitempty" mapstructure:"user_id,omitempty"`
 }
 
 func ValidateMovie(v *validator.Validator, movie *Movie) {
@@ -146,29 +145,12 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
   genres,
   movies.version as version,
   views.count as count,
-  coalesce(A.count,0) as likesCount,
   users.name as username,
-  movies.user_id,
-  coalesce(A.currentUserLiked,0) as currentUserLiked
+  movies.user_id
 FROM
   movies
   inner join views on views.movie_id = movies.id
   inner join users on users.id = user_id
-  LEFT JOIN (
-    SELECT
-      COUNT(*) as count,
-      A.movie_id,
-      sum(
-        CASE
-          WHEN A.user_id = user_id then 1
-          else 0
-        end
-      ) as currentUserLiked
-    FROM
-      likes A
-    GROUP BY
-      A.movie_id
-  ) A ON A.movie_id = movies.id
 WHERE
   movies.id = $1;
 	`
@@ -187,10 +169,8 @@ WHERE
 		pq.Array(&movie.Genres),
 		&movie.Version,
 		&movie.Count,
-		&movie.Likes,
 		&movie.UserName,
 		&movie.UserID,
-		&movie.CurrentUserLiked,
 	)
 
 	if err != nil {
@@ -374,29 +354,12 @@ func (m *MovieModel) CacheMost20PercentageView() error {
   genres,
   movies.version as version,
   views.count as count,
-  coalesce(A.count,0) as likesCount,
   users.name as username,
-  movies.user_id,
-  coalesce(A.currentUserLiked,0) as currentUserLiked
+  movies.user_id
 FROM
   movies
   inner join views on views.movie_id = movies.id
   inner join users on users.id = user_id
-  LEFT JOIN (
-    SELECT
-      COUNT(*) as count,
-      A.movie_id,
-      sum(
-        CASE
-          WHEN A.user_id = user_id then 1
-          else 0
-        end
-      ) as currentUserLiked
-    FROM
-      likes A
-    GROUP BY
-      A.movie_id
-  ) A ON A.movie_id = movies.id
   order by views.count Desc
 limit $1;
 	`
@@ -421,10 +384,8 @@ limit $1;
 			pq.Array(&movie.Genres),
 			&movie.Version,
 			&movie.Count,
-			&movie.Likes,
 			&movie.UserName,
 			&movie.UserID,
-			&movie.CurrentUserLiked,
 		)
 		if err != nil {
 			return err

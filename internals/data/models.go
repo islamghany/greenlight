@@ -26,6 +26,6 @@ func NewModels(db *sql.DB, rdb *redis.Client) Models {
 		Users:       UserModel{DB: db, RDB: rdb},
 		Tokens:      TokenModel{DB: db},
 		Permissions: PermissionModel{DB: db},
-		Likes:       LikeModel{DB: db},
+		Likes:       LikeModel{DB: db, RDB: rdb},
 	}
 }

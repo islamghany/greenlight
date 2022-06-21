@@ -8,6 +8,31 @@ import (
 	"islamghany.greenlight/internals/validator"
 )
 
+func (app *application) getMoiveLikeHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	user := app.contextGetUser(r)
+	l, err := app.models.Likes.GetMoiveLike(id, user.ID)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJson(w, http.StatusOK, envelope{"likes": l}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
 func (app *application) addLikeHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		MovieID int64 `json:"movie_id"`
@@ -31,7 +56,7 @@ func (app *application) addLikeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.models.Likes.Insert(user.ID, input.MovieID)
+	err = app.models.Likes.Insert(input.MovieID, user.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateLike):

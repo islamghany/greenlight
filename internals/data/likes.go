@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"islamghany.greenlight/internals/validator"
 )
 
@@ -27,10 +28,46 @@ func ValidateLikeInput(v *validator.Validator, movieID int64) {
 }
 
 type LikeModel struct {
-	DB *sql.DB
+	DB  *sql.DB
+	RDB *redis.Client
 }
 
-func (m LikeModel) Insert(userID, movieID int64) error {
+type LikeResponse struct {
+	MovieID            int64 `json:"movie_id"`
+	IsCurrentUserLiked int32 `json:"isCurrentUserLiked"`
+	Likes              int64 `json:"likes"`
+}
+
+func (m LikeModel) GetMoiveLike(movieID, userID int64) (*LikeResponse, error) {
+	query := `
+	select count(*) as likes, sum(
+			CASE
+			WHEN l.user_id = $2 then 1
+			else 0
+			end
+		) as currentUserLiked 
+	from likes l 
+	join movies m on m.id = l.movie_id
+	where l.movie_id = $1
+	group by l.id, m.id;
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	var l LikeResponse
+	err := m.DB.QueryRowContext(ctx, query, movieID, userID).Scan(&l.Likes, &l.IsCurrentUserLiked)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRecordNotFound
+		}
+		return nil, err
+	}
+
+	l.MovieID = movieID
+	return &l, nil
+}
+
+func (m LikeModel) Insert(movieID, userID int64) error {
 	query := `
 		INSERT INTO likes (user_id,movie_id)
 		VALUES ($1,$2);
@@ -78,3 +115,19 @@ func (m LikeModel) Delete(id int64) error {
 	}
 	return nil
 }
+
+// func (m LikeModel) CacheAddLikeIfMovieExist(movieID int64) error {
+
+// 	ok, err := m.RDB.HExists(ctx, MoviesKey(movieID), "id").Result()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if ok == true {
+// 		err := m.RDB.HIncrBy(ctx, MoviesKey(movieID), "likes", 1).Err()
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+
+// 	return nil
+// }

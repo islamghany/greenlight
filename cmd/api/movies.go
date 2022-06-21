@@ -115,7 +115,6 @@ func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request)
 	movie, err := app.models.Movies.CacheGetMovie(data.MoviesKey(id))
 
 	if err != nil {
-		app.logger.PrintInfo("from db", nil)
 		movie, err = app.models.Movies.Get(id)
 		if err != nil {
 			switch {

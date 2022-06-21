@@ -75,10 +75,8 @@ func DeserializeMovie(input map[string]string) *Movie {
 	movie.CreatedAt, _ = time.Parse(time.RFC3339, input["created_at"])
 	movie.Genres = DeserializeGenres(input["genres"])
 	movie.Runtime = Runtime(DeserializeRuntime(input["runtime"]))
-	movie.CurrentUserLiked = deserialize32Int(input["currentUserLiked"])
 	movie.Year = deserialize32Int(input["year"])
 	movie.UserID = deserialize64Int(input["user_id"])
-	movie.Likes = deserialize64Int(input["likes"])
 	movie.UserName = input["username"]
 	movie.Version = deserialize32Int(input["version"])
 	movie.Count = deserialize32Int(input["count"])

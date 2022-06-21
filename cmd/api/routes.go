@@ -31,6 +31,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/reset-password-token", app.createResetPasswordTokenHandler)
 
+	router.HandlerFunc(http.MethodGet, "/v1/likes/:id", app.getMoiveLikeHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/likes", app.requirePermission("movies:write", app.addLikeHandler))
 	router.HandlerFunc(http.MethodDelete, "/v1/likes/:id", app.requirePermission("movies:write", app.deleteLikeHandler))
 
