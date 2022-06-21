@@ -26,6 +26,9 @@ func MoviesKey(id int64) string {
 	return fmt.Sprint("movies#", id)
 }
 
+func MoviesConcat(key string) string {
+	return fmt.Sprint("movies/", key)
+}
 func SerializeGenres(g []string) string {
 	values := ""
 
@@ -85,6 +88,24 @@ func DeserializeMovie(input map[string]string) *Movie {
 }
 
 // *************** Helpers
+
+func Set(rdb *redis.Client, key, value string, ttl time.Duration) error {
+
+	return rdb.Set(ctx, key, value, ttl).Err()
+
+}
+func Get(rdb *redis.Client, key string) (*string, error) {
+	res, err := rdb.Get(ctx, key).Result()
+
+	if err != nil && err != redis.Nil {
+		return nil, fmt.Errorf("find: redis error: %w", err)
+	}
+
+	if err == redis.Nil {
+		return nil, fmt.Errorf("find: not found")
+	}
+	return &res, nil
+}
 
 func PipeSet(rdb *redis.Client, keys []string, values []map[string]interface{}, ttl time.Duration) error {
 	if len(keys) != len(values) {

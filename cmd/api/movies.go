@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"islamghany.greenlight/internals/data"
+	"islamghany.greenlight/internals/marshing"
 	"islamghany.greenlight/internals/validator"
 )
 
@@ -231,4 +232,31 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 
 func (app *application) GetMostViewsMovivesHandler(w http.ResponseWriter, r *http.Request) {
 
+	res, err := app.models.Movies.CacheGetMostViews()
+	if err != nil {
+		movies, err := app.models.Movies.GetMostViews()
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		err = app.writeJson(w, http.StatusOK, envelope{"movies": movies}, nil)
+
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+		app.background(func() {
+			data, err := marshing.MarshalBinary(envelope{"movies": movies})
+			if err != nil {
+				app.logger.PrintError(err, nil)
+			}
+			err = app.models.Movies.CacheSetMostViews(string(data))
+			if err != nil {
+				app.logger.PrintError(err, nil)
+			}
+		})
+		return
+	}
+	app.writeJsonString(w, *res)
 }

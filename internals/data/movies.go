@@ -281,6 +281,23 @@ func (m UserModel) Update(user *User) error {
 	return nil
 }
 
+func (m MovieModel) CacheGetMostViews() (*string, error) {
+	cashedRes, err := Get(m.RDB, MoviesConcat("most-views"))
+
+	if err != nil {
+		return nil, err
+	}
+	return cashedRes, nil
+}
+
+func (m MovieModel) CacheSetMostViews(value string) error {
+	err := Set(m.RDB, MoviesConcat("most-views"), value, 3*time.Hour)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func (m MovieModel) GetMostViews() ([]*Movie, error) {
 	query := `
 	select m.id as id, created_at, title, year, runtime, genres, version, user_id, count from movies m 
