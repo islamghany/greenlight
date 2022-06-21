@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Jun  9 21:52:18 2022
+# Make data base, printed on Mon Jun 20 17:00:01 2022
 
 # Variables
 
@@ -53,7 +53,7 @@ EMAIL_PASSWORD = islamghany3@
 # environment
 _ = /usr/share/code/code
 # environment
-JOURNAL_STREAM = 9:48734
+JOURNAL_STREAM = 9:53084
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # makefile (from '.envrc', line 1)
@@ -75,9 +75,9 @@ DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-MANAGERPID = 1615
+MANAGERPID = 2023
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-8a56ec66-6c6d-487e-9c74-01ef4accc0d8.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-56baac70-af14-4cfa-9574-219e89cacd1f.sock
 # environment
 LC_NAME = en_US.UTF-8
 # environment
@@ -97,7 +97,7 @@ GJS_DEBUG_OUTPUT = stderr
 # environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
-SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/1824,unix/islamghany:/tmp/.ICE-unix/1824
+SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2231,unix/islamghany:/tmp/.ICE-unix/2231
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -111,7 +111,7 @@ VSCODE_LOG_STACK = false
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = ddfa52f59d1b4624a5b8920928c12125
+INVOCATION_ID = e590fe224ea547bb9ca2fd2d6fb15bdf
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -121,7 +121,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 2617
+GIO_LAUNCHED_DESKTOP_FILE_PID = 88664
 # automatic
 %F = $(notdir $%)
 # environment
@@ -133,7 +133,7 @@ PWD = /home/islamghany/Drive/Code/Go/greenlight
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 1791
+SSH_AGENT_PID = 2199
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -263,7 +263,7 @@ LANG = C
 # makefile (from '.envrc', line 7)
 REDIS_PORT = 19934
 # environment
-VSCODE_PID = 2617
+VSCODE_PID = 88664
 # environment
 NVM_RC_VERSION = 
 # variable set hash-table stats:
@@ -281,10 +281,10 @@ NVM_RC_VERSION =
 
 # Implicit Rules
 
+ 
 # No implicit rules.
 
 # Files
- 
 
 # Not a target:
 all:
@@ -389,7 +389,6 @@ run/dev:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
- 
 #  recipe to execute (from 'Makefile', line 30):
 	@go run ./sandbox/main.go
 
@@ -427,6 +426,6 @@ vendor:
 # strcache performance: lookups = 77 / hit rate = 58%
 # hash-table stats:
 # Load=32/8192=0%, Rehash=0, Collisions=1/77=1%
-# Finished Make data base on Thu Jun  9 21:52:18 2022
+# Finished Make data base on Mon Jun 20 17:00:01 2022
 
  

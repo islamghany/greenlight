@@ -9,24 +9,24 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/lib/pq"
-	"islamghany.greenlight/internals/marshing"
+	"github.com/mitchellh/mapstructure"
 	"islamghany.greenlight/internals/validator"
 )
 
 // JSON-encoded output.
 type Movie struct {
-	ID               int64     `json:"id"`
-	CreatedAt        time.Time `json:"created_at"`
-	Title            string    `json:"title"`
-	Year             int32     `json:"year,omitempty"`
-	Runtime          Runtime   `json:"runtime,omitempty"`
-	Genres           []string  `json:"genres"`
-	Version          int32     `json:"version"`
-	Count            int32     `json:"count,omitempty"`
-	Likes            int64     `json:"likes,omitempty"`
-	UserName         string    `json:"username"`
-	UserID           int64     `json:"user_id"`
-	CurrentUserLiked int32     `json:"currentUserLiked,omitempty,"`
+	ID               int64     `json:"id" redis:"id" mapstructure:"id" `
+	CreatedAt        time.Time `json:"created_at" redis:"created_at" mapstructure:"created_at"`
+	Title            string    `json:"title" redis:"title" mapstructure:"title"`
+	Year             int32     `json:"year,omitempty" redis:"year,omitempty" mapstructure:"year,omitempty"`
+	Runtime          Runtime   `json:"runtime,omitempty" redis:"runtime,omitempty" mapstructure:"runtime,omitempty"`
+	Genres           []string  `json:"genres" redis:"genres" mapstructure:"genres"`
+	Version          int32     `json:"version" redis:"version" mapstructure:"version"`
+	Count            int32     `json:"count,omitempty" redis:"ount,omitempty" mapstructure:"ount,omitempty"`
+	Likes            int64     `json:"likes,omitempty" redis:"likes,omitempty" mapstructure:"likes,omitempty"`
+	UserName         string    `json:"username,omitempty" redis:"username,omitempty" mapstructure:"username,omitempty"`
+	UserID           int64     `json:"user_id,omitempty" redis:"user_id,omitempty" mapstructure:"user_id,omitempty"`
+	CurrentUserLiked int32     `json:"currentUserLiked,omitempty" redis:"currentUserLiked,omitempty" mapstructure:"currentUserLiked,omitempty"`
 }
 
 func ValidateMovie(v *validator.Validator, movie *Movie) {
@@ -371,8 +371,6 @@ func (m *MovieModel) CacheMost20PercentageView() error {
 	limit $1
 	`
 
-	var jsonMovies [][]byte
-
 	rows, err := m.DB.QueryContext(ctx, query, limit)
 
 	if err != nil {
@@ -381,6 +379,7 @@ func (m *MovieModel) CacheMost20PercentageView() error {
 	defer rows.Close()
 	fmt.Println("fetch the movies")
 	var keys []string
+	var values []map[string]interface{}
 	for rows.Next() {
 		var movie Movie
 		err := rows.Scan(
@@ -398,11 +397,13 @@ func (m *MovieModel) CacheMost20PercentageView() error {
 			return err
 		}
 		keys = append(keys, MoviesKey(movie.ID))
-		jsonMovie, err := marshing.MarshalBinary(movie)
-		if err != nil {
-			return err
-		}
-		jsonMovies = append(jsonMovies, jsonMovie)
+
+		var m map[string]interface{}
+		mapstructure.Decode(movie, &m)
+		m["genres"] = SerializeGenres(movie.Genres)
+		m["runtime"] = SerializeRuntime(int32(movie.Runtime))
+		m["created_at"] = movie.CreatedAt.UTC().Format(time.RFC3339)
+		values = append(values, m)
 
 	}
 	fmt.Println("full arrays")
@@ -410,8 +411,30 @@ func (m *MovieModel) CacheMost20PercentageView() error {
 		return err
 	}
 
-	err = PipeSet(m.RDB, keys, jsonMovies, 3*time.Hour)
+	err = PipeSet(m.RDB, keys, values, 3*time.Hour)
 	fmt.Println("finish successfully")
 	return err
 
+}
+
+func (m MovieModel) CacheGetMovie(key string) (*Movie, error) {
+	var movie Movie
+
+	res, err := m.RDB.HGetAll(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	}
+	if len(res["id"]) < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	var dest map[string]interface{}
+	mapstructure.Decode(res, &dest)
+
+	dest["genres"] = DeserializeGenres(res["genres"])
+	dest["runtime"] = DeserializeRuntime(res["runtime"])
+	mapstructure.Decode(dest, &movie)
+
+	movie.CreatedAt, _ = time.Parse(time.RFC3339, res["created_at"])
+	return &movie, nil
 }

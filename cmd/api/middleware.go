@@ -48,11 +48,11 @@ func (app *application) cacheReinvalidate(next http.Handler) http.Handler {
 
 	go func() {
 		for {
-			time.Sleep(3 * time.Hour)
 			err := app.models.Movies.CacheMost20PercentageView()
 			if err != nil {
 				app.logger.PrintError(err, nil)
 			}
+			time.Sleep(3 * time.Hour)
 		}
 	}()
 
