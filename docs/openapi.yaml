@@ -324,6 +324,14 @@ paths:
         - users
       description: Retreive a user with id
       operationId: GetUser
+      parameters:
+        - name: id
+          in: path
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         200:
           description: success operation
@@ -452,6 +460,14 @@ paths:
         - likes
       description: get the likes of the specific movie
       operationId: getMovieLikes
+      parameters:
+        - name: id
+          in: path
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         200:
           description: Success operation
@@ -475,6 +491,14 @@ paths:
         - likes
       description: remove a like of the specific movie
       operationId: unlikeMovie
+      parameters:
+        - name: id
+          in: path
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         200:
           description: Success operation
