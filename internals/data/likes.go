@@ -97,7 +97,7 @@ func (m LikeModel) Delete(id int64) error {
 	}
 	query := `
 		DELETE FROM likes
-		WHERE ID = $1;
+		WHERE movie_id = $1;
 	`
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -115,19 +115,3 @@ func (m LikeModel) Delete(id int64) error {
 	}
 	return nil
 }
-
-// func (m LikeModel) CacheAddLikeIfMovieExist(movieID int64) error {
-
-// 	ok, err := m.RDB.HExists(ctx, MoviesKey(movieID), "id").Result()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if ok == true {
-// 		err := m.RDB.HIncrBy(ctx, MoviesKey(movieID), "likes", 1).Err()
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-
-// 	return nil
-// }

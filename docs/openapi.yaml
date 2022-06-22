@@ -90,9 +90,7 @@ paths:
           $ref: '#/components/responses/ServerError' 
         401:
           $ref: '#/components/responses/AuthenticationRequiredResponse'  
-      security:
-        - movies_auth:
-          - 'movies:read'     
+       
     post:
       tags:
         - movies
@@ -148,16 +146,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Movie'
+                type: object
+                properties:
+                  movie:
+                    $ref: "#/components/schemas/Movie"
         500:
           $ref: '#/components/responses/ServerError'
         404:
           $ref: "#/components/responses/NotFoundResponse"               
         401:
-          $ref: '#/components/responses/AuthenticationRequiredResponse' 
-      security:
-        - movies_auth:
-          - 'movies:read'                 
+          $ref: '#/components/responses/AuthenticationRequiredResponse'               
     patch:
       tags:
         - movies
@@ -179,7 +177,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Movie'
+                type: object
+                properties:
+                  movie:
+                    $ref: "#/components/schemas/Movie"   
         500:
           $ref: '#/components/responses/ServerError'
         409:
@@ -224,7 +225,48 @@ paths:
           $ref: '#/components/responses/AuthenticationRequiredResponse' 
       security:
         - movies_auth:
-          - 'movies:write'     
+          - 'movies:write'
+  /movies/most-likes:
+    options:
+      tags:
+        - movies
+      description: get the most liked movies
+      operationId: getMostLikedMovies
+      responses:
+        200:
+          description: success operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  movies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Movie"
+        500:
+          $ref: '#/components/responses/ServerError'   
+  /movies/most-views:
+    options:
+      tags:
+        - movies
+      description: get the most viewd movies
+      operationId: getMostViewedMovies
+      responses:
+        200:
+          description: success operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  movies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Movie"
+                  
+        500:
+          $ref: '#/components/responses/ServerError'               
   /users:
     get:
       tags:
@@ -245,6 +287,9 @@ paths:
           $ref: '#/components/responses/ServerError'
         401:
           $ref: "#/components/responses/AuthenticationRequiredResponse"       
+      security:
+        - movies_auth:
+          - 'movies:read'
     post:
       tags:
           - users
@@ -273,6 +318,26 @@ paths:
           $ref: "#/components/responses/BadRequestResponse" 
         422:
           $ref: "#/components/responses/FailedValidationResponse"            
+  /users/{id}:
+    get:
+      tags:
+        - users
+      description: Retreive a user with id
+      operationId: GetUser
+      responses:
+        200:
+          description: success operation
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  user: 
+                    $ref: "#/components/schemas/User"
+        500:
+          $ref: '#/components/responses/ServerError'
+        404:
+          $ref: "#/components/responses/NotFoundResponse"
   /users/activated:
     put:
       tags:
@@ -315,7 +380,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AuthenticateUser"  
+              type: object
+              properties:
+                user: 
+                  $ref: "#/components/schemas/User"  
       responses:
         201:
           description: user activated
@@ -377,7 +445,88 @@ paths:
         422:
           $ref: "#/components/responses/FailedValidationResponse"
         401:
-          $ref: "#/components/responses/AuthenticationRequiredResponse"      
+          $ref: "#/components/responses/AuthenticationRequiredResponse" 
+  /likes/{id}:
+    get:
+      tags:
+        - likes
+      description: get the likes of the specific movie
+      operationId: getMovieLikes
+      responses:
+        200:
+          description: Success operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  likes:
+                   $ref: "#/components/schemas/Like"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"             
+    delete:
+      tags:
+        - likes
+      description: remove a like of the specific movie
+      operationId: unlikeMovie
+      responses:
+        200:
+          description: Success operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"             
+      security:
+        - movies_auth:
+          - 'movies:read'
+  /likes:  
+    post:
+      tags:
+        - likes
+      description: add a like of the specific movie
+      operationId: likeMovie
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                movie_id:
+                  type: integer
+                  format: int64
+      responses:
+        200:
+          description: Success operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"             
+      security:
+        - movies_auth:
+           - 'movies:read'
+
 components:
   schemas:
     EmailObject:
@@ -437,7 +586,11 @@ components:
           description: the number of the views to this movie
         likes:
           type: integer
-          description: the number of likes on this movie  
+          description: the number of likes on this movie 
+        user_id:
+          type: integer
+          format: int64
+          description: the id of the user that has created that movie  
     MetaData:
       description: the meta about a number of items
       type: object
@@ -491,7 +644,9 @@ components:
           type: string 
         created_at:
           type: string
-          format: data 
+          format: data
+        isCurrentUser:
+          type: boolean  
     CreateUser:
       type: object
       properties:
@@ -508,6 +663,18 @@ components:
           type: string
         password:
           type: string
+    Like:
+      type: object
+      properties:
+        movie_id:
+          type: integer
+          format: int64
+        isCurrentUserLiked:
+          type: integer
+          format: int32
+        likes:
+          type: integer
+          format: int64    
     Token:
       type: object
       properties:
