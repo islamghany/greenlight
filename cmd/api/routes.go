@@ -21,6 +21,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showMovieHandler)
 	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.requirePermission("movies:write", app.updateMovieHandler))
 	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.requirePermission("movies:write", app.deleteMovieHandler))
+	router.HandlerFunc(http.MethodOptions, "/v1/movies/most-likes", app.GetMostLikedMovivesHandler)
 	router.HandlerFunc(http.MethodOptions, "/v1/movies/most-views", app.GetMostViewsMovivesHandler)
 
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)

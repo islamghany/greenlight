@@ -343,6 +343,69 @@ func (m MovieModel) GetMostViews() ([]*Movie, error) {
 	return movies, nil
 }
 
+func (m MovieModel) CacheGetMostLikes() (*string, error) {
+	cashedRes, err := Get(m.RDB, MoviesConcat("most-likes"))
+
+	if err != nil {
+		return nil, err
+	}
+	return cashedRes, nil
+}
+func (m MovieModel) CacheSetMostLikes(value string) error {
+	err := Set(m.RDB, MoviesConcat("most-likes"), value, 3*time.Hour)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (m MovieModel) GetMostLikes() ([]*Movie, error) {
+	query := `
+	select m.id as id, created_at, title, year, runtime, genres, version, m.user_id as user_id , count(m.id) as likes_count  
+	from movies m 
+	join likes l on l.movie_id  = m.id 
+	group by  m.id
+	order by likes_count
+	limit 10;
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	movies := []*Movie{}
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var movie Movie
+
+		err := rows.Scan(
+			&movie.ID,
+			&movie.CreatedAt,
+			&movie.Title,
+			&movie.Year,
+			&movie.Runtime,
+			pq.Array(&movie.Genres),
+			&movie.Version,
+			&movie.UserID,
+			&movie.Likes,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add the Movie struct to the slice.
+		movies = append(movies, &movie)
+
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return movies, nil
+}
+
 func (m *MovieModel) CacheMost20PercentageView() error {
 	fmt.Println("begin")
 	query := `

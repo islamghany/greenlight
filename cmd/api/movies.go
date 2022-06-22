@@ -260,3 +260,33 @@ func (app *application) GetMostViewsMovivesHandler(w http.ResponseWriter, r *htt
 	}
 	app.writeJsonString(w, *res)
 }
+
+func (app *application) GetMostLikedMovivesHandler(w http.ResponseWriter, r *http.Request) {
+	res, err := app.models.Movies.CacheGetMostLikes()
+	if err != nil {
+		movies, err := app.models.Movies.GetMostLikes()
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		err = app.writeJson(w, http.StatusOK, envelope{"movies": movies}, nil)
+
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+		app.background(func() {
+			data, err := marshing.MarshalBinary(envelope{"movies": movies})
+			if err != nil {
+				app.logger.PrintError(err, nil)
+			}
+			err = app.models.Movies.CacheSetMostLikes(string(data))
+			if err != nil {
+				app.logger.PrintError(err, nil)
+			}
+		})
+		return
+	}
+	app.writeJsonString(w, *res)
+}

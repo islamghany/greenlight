@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Jun 20 17:00:01 2022
+# Make data base, printed on Wed Jun 22 12:22:31 2022
 
 # Variables
 
@@ -77,7 +77,7 @@ VSCODE_VERBOSE_LOGGING = true
 # environment
 MANAGERPID = 2023
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-56baac70-af14-4cfa-9574-219e89cacd1f.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-dfe30cdc-4ee9-44eb-b775-5b491df8dfe6.sock
 # environment
 LC_NAME = en_US.UTF-8
 # environment
@@ -121,7 +121,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 88664
+GIO_LAUNCHED_DESKTOP_FILE_PID = 172427
 # automatic
 %F = $(notdir $%)
 # environment
@@ -263,7 +263,7 @@ LANG = C
 # makefile (from '.envrc', line 7)
 REDIS_PORT = 19934
 # environment
-VSCODE_PID = 88664
+VSCODE_PID = 172427
 # environment
 NVM_RC_VERSION = 
 # variable set hash-table stats:
@@ -426,6 +426,6 @@ vendor:
 # strcache performance: lookups = 77 / hit rate = 58%
 # hash-table stats:
 # Load=32/8192=0%, Rehash=0, Collisions=1/77=1%
-# Finished Make data base on Mon Jun 20 17:00:01 2022
+# Finished Make data base on Wed Jun 22 12:22:31 2022
 
  
