@@ -41,9 +41,9 @@ paths:
           schema: 
             type: string
             default: ""
-        - name: geners
+        - name: genres
           in: query
-          description: an array containg the geners of the movie
+          description: an array containg the genres of the movie
           schema:
             type: array
             default: []
@@ -388,10 +388,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                user: 
-                  $ref: "#/components/schemas/User"  
+              $ref: "#/components/schemas/AuthenticateUser"  
       responses:
         201:
           description: user activated
@@ -579,12 +576,16 @@ components:
         - id
         - runtime
         - year
-        - geners
+        - genres
+        - title
       properties:
         id:
           type: integer
           format: int64
           example: 4
+        title:
+          type: string
+          example: Batman 
         created_at:
           type: string
           format: date
@@ -593,7 +594,7 @@ components:
           type: string 
           example: 150 min
           description: the runtime of the movie is represented in the database as a normal year but we manipulated it before and after converting it to json to make it a nice string
-        geners:
+        genres:
           type: array
           example: [drama, romantic]
           description: the categories that the movie belongs
@@ -644,7 +645,7 @@ components:
         year:
           type: integer
           format: int32
-        geners:
+        genres:
           type: array
           items:
             type: string 
