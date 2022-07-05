@@ -21,11 +21,23 @@ func (app *application) getMoiveLikeHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
+			{
+				l = &data.LikeResponse{
+					IsCurrentUserLiked: 0,
+					Likes:              0,
+					MovieID:            id,
+				}
+
+			}
+
 		default:
-			app.serverErrorResponse(w, r, err)
+			{
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+
 		}
-		return
+
 	}
 
 	err = app.writeJson(w, http.StatusOK, envelope{"likes": l}, nil)

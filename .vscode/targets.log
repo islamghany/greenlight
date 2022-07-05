@@ -1,6 +1,4 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-make: *** No rule to make target 'all'.  Stop.
-
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -8,7 +6,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Jun 22 13:47:24 2022
+# Make data base, printed on Tue Jul  5 19:01:40 2022
 
 # Variables
 
@@ -53,7 +51,7 @@ EMAIL_PASSWORD = islamghany3@
 # environment
 _ = /usr/share/code/code
 # environment
-JOURNAL_STREAM = 9:53084
+JOURNAL_STREAM = 9:50843
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # makefile (from '.envrc', line 1)
@@ -71,13 +69,13 @@ XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/d
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
-DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus,guid=870a973f3e7b1e20b5be73cf62c42ffb
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-MANAGERPID = 2023
+MANAGERPID = 2000
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-ec9668fd-cbd0-4fcb-875f-7f13a35b0704.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-6d5509b5-daa9-4aee-9cb7-d8c67bf80a99.sock
 # environment
 LC_NAME = en_US.UTF-8
 # environment
@@ -93,11 +91,9 @@ current_time = $(shell date --iso-8601=seconds)
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-GJS_DEBUG_OUTPUT = stderr
-# environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
-SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2231,unix/islamghany:/tmp/.ICE-unix/2231
+SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2214,unix/islamghany:/tmp/.ICE-unix/2214
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -111,7 +107,7 @@ VSCODE_LOG_STACK = false
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = e590fe224ea547bb9ca2fd2d6fb15bdf
+INVOCATION_ID = 6f70dd88117a47629e0ea0d3ff701781
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -121,7 +117,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 172427
+GIO_LAUNCHED_DESKTOP_FILE_PID = 6385
 # automatic
 %F = $(notdir $%)
 # environment
@@ -133,7 +129,7 @@ PWD = /home/islamghany/Drive/Code/Go/greenlight
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 2199
+SSH_AGENT_PID = 2182
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -234,10 +230,10 @@ GREENLIGHT_DB_DSN = postgres://greenlight:islamghany@localhost/greenlight
 PAGER = less
 # environment
 LC_ALL = C
+# environment
+DBUS_STARTER_BUS_TYPE = session
 # makefile (from '.envrc', line 5)
 CLIENT_URL = http://localhost:3000/
-# environment
-GJS_DEBUG_TOPICS = JS ERROR;JS LOG
 # automatic
 ^F = $(notdir $^)
 # makefile (from '.envrc', line 3)
@@ -263,11 +259,13 @@ LANG = C
 # makefile (from '.envrc', line 7)
 REDIS_PORT = 19934
 # environment
-VSCODE_PID = 172427
+VSCODE_PID = 6385
+# environment
+DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=870a973f3e7b1e20b5be73cf62c42ffb
 # environment
 NVM_RC_VERSION = 
 # variable set hash-table stats:
-# Load=127/1024=12%, Rehash=0, Collisions=20/155=13%
+# Load=127/1024=12%, Rehash=0, Collisions=19/155=12%
 
 # Pattern-specific Variable Values
 
@@ -281,13 +279,16 @@ NVM_RC_VERSION =
 
 # Implicit Rules
 
+ 
+make: *** No rule to make target 'all'.  Stop.
+
 # No implicit rules.
 
 # Files
 
 # Not a target:
- 
 all:
+ 
 #  Command line target.
 #  Implicit rule search has been done.
 #  File does not exist.
@@ -426,6 +427,6 @@ vendor:
 # strcache performance: lookups = 77 / hit rate = 58%
 # hash-table stats:
 # Load=32/8192=0%, Rehash=0, Collisions=1/77=1%
-# Finished Make data base on Wed Jun 22 13:47:24 2022
+# Finished Make data base on Tue Jul  5 19:01:40 2022
 
  
