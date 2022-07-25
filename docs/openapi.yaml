@@ -394,8 +394,11 @@ paths:
           description: user activated
           content: 
             application/json:
-              schema: 
-                $ref: "#/components/schemas/User"    
+               schema:
+                type: object
+                properties:
+                  user: 
+                    $ref: "#/components/schemas/User"    
         500:
           $ref: '#/components/responses/ServerError'
         400:

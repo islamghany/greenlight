@@ -1,19 +1,35 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-# GNU Make 4.2.1
-# Built for x86_64-pc-linux-gnu
-# Copyright (C) 1988-2016 Free Software Foundation, Inc.
-# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-# This is free software: you are free to change and redistribute it.
-# There is NO WARRANTY, to the extent permitted by law.
+make: *** No rule to make target 'all'.  Stop.
 
-# Make data base, printed on Tue Jul  5 19:01:40 2022
+# GNU Make 4.2.1
+ 
+# Built for x86_64-pc-linux-gnu
+ 
+# Copyright (C) 1988-2016 Free Software Foundation, Inc.
+ 
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+ 
+# This is free software: you are free to change and redistribute it.
+ 
+# There is NO WARRANTY, to the extent permitted by law.
+ 
+
+ 
+# Make data base, printed on Mon Jul 25 19:48:18 2022
+ 
 
 # Variables
+ 
 
+ 
 # 'override' directive
+ 
 GNUMAKEFLAGS := 
+ 
 # automatic
+ 
 <D = $(patsubst %/,%,$(dir $<))
+ 
 # automatic
 ?F = $(notdir $?)
 # environment
@@ -51,7 +67,7 @@ EMAIL_PASSWORD = islamghany3@
 # environment
 _ = /usr/share/code/code
 # environment
-JOURNAL_STREAM = 9:50843
+JOURNAL_STREAM = 9:51223
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # makefile (from '.envrc', line 1)
@@ -69,13 +85,13 @@ XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/d
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
-DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus,guid=870a973f3e7b1e20b5be73cf62c42ffb
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-MANAGERPID = 2000
+MANAGERPID = 1823
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-6d5509b5-daa9-4aee-9cb7-d8c67bf80a99.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-37763b0d-afd6-424f-a2e5-7f37070d4afc.sock
 # environment
 LC_NAME = en_US.UTF-8
 # environment
@@ -85,15 +101,17 @@ GOPROXY = https://proxy.golang.org,direct
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
-PATH = /home/islamghany/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+PATH = /home/islamghany/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/islamghany/go/bin
 # makefile (from 'Makefile', line 80)
 current_time = $(shell date --iso-8601=seconds)
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
+GJS_DEBUG_OUTPUT = stderr
+# environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
-SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2214,unix/islamghany:/tmp/.ICE-unix/2214
+SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2043,unix/islamghany:/tmp/.ICE-unix/2043
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -101,13 +119,14 @@ GOPATH = /home/islamghany/go
 # makefile (from 'Makefile', line 82)
 linker_flags = '-s -X main.buildTime=${current_time} -X main.version=${git_description}'
 # environment
+ 
 XDG_MENU_PREFIX = gnome-
 # environment
 VSCODE_LOG_STACK = false
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = 6f70dd88117a47629e0ea0d3ff701781
+INVOCATION_ID = 48b880056bf34fa8997523162ea52476
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -117,7 +136,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 6385
+GIO_LAUNCHED_DESKTOP_FILE_PID = 3088
 # automatic
 %F = $(notdir $%)
 # environment
@@ -129,7 +148,7 @@ PWD = /home/islamghany/Drive/Code/Go/greenlight
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 2182
+SSH_AGENT_PID = 2011
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -230,10 +249,10 @@ GREENLIGHT_DB_DSN = postgres://greenlight:islamghany@localhost/greenlight
 PAGER = less
 # environment
 LC_ALL = C
-# environment
-DBUS_STARTER_BUS_TYPE = session
 # makefile (from '.envrc', line 5)
 CLIENT_URL = http://localhost:3000/
+# environment
+GJS_DEBUG_TOPICS = JS ERROR;JS LOG
 # automatic
 ^F = $(notdir $^)
 # makefile (from '.envrc', line 3)
@@ -259,13 +278,11 @@ LANG = C
 # makefile (from '.envrc', line 7)
 REDIS_PORT = 19934
 # environment
-VSCODE_PID = 6385
-# environment
-DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=870a973f3e7b1e20b5be73cf62c42ffb
+VSCODE_PID = 3088
 # environment
 NVM_RC_VERSION = 
 # variable set hash-table stats:
-# Load=127/1024=12%, Rehash=0, Collisions=19/155=12%
+# Load=127/1024=12%, Rehash=0, Collisions=20/155=13%
 
 # Pattern-specific Variable Values
 
@@ -279,16 +296,12 @@ NVM_RC_VERSION =
 
 # Implicit Rules
 
- 
-make: *** No rule to make target 'all'.  Stop.
-
 # No implicit rules.
 
 # Files
 
 # Not a target:
 all:
- 
 #  Command line target.
 #  Implicit rule search has been done.
 #  File does not exist.
@@ -392,6 +405,7 @@ run/dev:
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 30):
 	@go run ./sandbox/main.go
+ 
 
 run/api:
 #  Phony target (prerequisite of .PHONY).
@@ -427,6 +441,6 @@ vendor:
 # strcache performance: lookups = 77 / hit rate = 58%
 # hash-table stats:
 # Load=32/8192=0%, Rehash=0, Collisions=1/77=1%
-# Finished Make data base on Tue Jul  5 19:01:40 2022
+# Finished Make data base on Mon Jul 25 19:48:18 2022
 
  
