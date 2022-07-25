@@ -2,34 +2,20 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target 'all'.  Stop.
 
 # GNU Make 4.2.1
- 
 # Built for x86_64-pc-linux-gnu
- 
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
- 
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
- 
 # This is free software: you are free to change and redistribute it.
- 
 # There is NO WARRANTY, to the extent permitted by law.
- 
 
- 
-# Make data base, printed on Mon Jul 25 19:48:18 2022
- 
+# Make data base, printed on Mon Jul 25 22:25:27 2022
 
 # Variables
- 
 
- 
 # 'override' directive
- 
 GNUMAKEFLAGS := 
- 
 # automatic
- 
 <D = $(patsubst %/,%,$(dir $<))
- 
 # automatic
 ?F = $(notdir $?)
 # environment
@@ -91,7 +77,7 @@ VSCODE_VERBOSE_LOGGING = true
 # environment
 MANAGERPID = 1823
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-37763b0d-afd6-424f-a2e5-7f37070d4afc.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-8f42c597-38b2-44fc-8a6d-2b1df63c1a18.sock
 # environment
 LC_NAME = en_US.UTF-8
 # environment
@@ -119,7 +105,6 @@ GOPATH = /home/islamghany/go
 # makefile (from 'Makefile', line 82)
 linker_flags = '-s -X main.buildTime=${current_time} -X main.version=${git_description}'
 # environment
- 
 XDG_MENU_PREFIX = gnome-
 # environment
 VSCODE_LOG_STACK = false
@@ -302,6 +287,7 @@ NVM_RC_VERSION =
 
 # Not a target:
 all:
+ 
 #  Command line target.
 #  Implicit rule search has been done.
 #  File does not exist.
@@ -405,7 +391,6 @@ run/dev:
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 30):
 	@go run ./sandbox/main.go
- 
 
 run/api:
 #  Phony target (prerequisite of .PHONY).
@@ -441,6 +426,6 @@ vendor:
 # strcache performance: lookups = 77 / hit rate = 58%
 # hash-table stats:
 # Load=32/8192=0%, Rehash=0, Collisions=1/77=1%
-# Finished Make data base on Mon Jul 25 19:48:18 2022
+# Finished Make data base on Mon Jul 25 22:25:27 2022
 
  

@@ -172,9 +172,10 @@ func (app *application) addCookies(w http.ResponseWriter, name, value string, tt
 }
 func (app *application) removeCookies(w http.ResponseWriter, name string) {
 	cookie := http.Cookie{
-		Name:  name,
-		Value: "",
-		Path:  "/",
+		Name:    name,
+		Value:   "",
+		Path:    "/",
+		Expires: time.Unix(0, 0),
 	}
 	http.SetCookie(w, &cookie)
 }
