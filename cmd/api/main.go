@@ -212,8 +212,9 @@ func openDB(conf config) (*sql.DB, error) {
 
 func openRedis(host, port, username, password string) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
-		Password: password,
-		Addr:     fmt.Sprint(host, ":", port),
+		Password: "",
+		Addr:     "localhost:6379",
+		DB:       0,
 		//Username: username,
 	})
 
@@ -233,7 +234,10 @@ func loadEnvVars(conf *config) {
 	conf.vars.greenlightUserIDCookie = os.Getenv("GREENLIGHT_USERID_TOKEN")
 	conf.vars.emailPassword = os.Getenv("EMAIL_PASSWORD")
 	conf.vars.clientUrl = os.Getenv("CLIENT_URL")
-	conf.vars.redisHost = os.Getenv("REDIS_HOST")
-	conf.vars.redisPort = os.Getenv("REDIS_PORT")
-	conf.vars.redisPassword = os.Getenv("REDIS_PASSWORD")
+	// conf.vars.redisHost = os.Getenv("REDIS_HOST")
+	// conf.vars.redisPort = os.Getenv("REDIS_PORT")
+	// conf.vars.redisPassword = os.Getenv("REDIS_PASSWORD")
+	conf.vars.redisHost = "localhost"
+	conf.vars.redisPort = "6000"
+	conf.vars.redisPassword = ""
 }
