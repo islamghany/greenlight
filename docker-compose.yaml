@@ -1,0 +1,41 @@
+version: "3.3"
+services:
+
+  redis: 
+    image: redis:7.0.4-alpine
+    hostname: redis
+    ports:
+      - "6379:6379"
+    networks:
+      greenlight-net:
+   
+  postgres:
+    image: postgres:12-alpine
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=islamghany
+      - POSTGRES_DB=greenlight
+    networks:
+      greenlight-net:  
+    
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "4000:4000"  
+    environment:
+      GREENLIGHT_DB_DSN: postgresql://root:islamghany@postgres:5432/greenlight?sslmode=disable
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    entrypoint: ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
+    command: ["/app/main"]
+    networks:
+      greenlight-net:  
+networks:
+  greenlight-net:
+
+

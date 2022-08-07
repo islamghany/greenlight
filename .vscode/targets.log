@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Jul 27 14:03:42 2022
+# Make data base, printed on Sun Aug  7 09:29:01 2022
 
 # Variables
 
@@ -53,7 +53,7 @@ EMAIL_PASSWORD = islamghany3@
 # environment
 _ = /usr/share/code/code
 # environment
-JOURNAL_STREAM = 9:51223
+JOURNAL_STREAM = 9:49933
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # makefile (from '.envrc', line 1)
@@ -69,21 +69,17 @@ MAKELEVEL := 0
 # environment
 XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
 # environment
-VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
-# environment
 DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-MANAGERPID = 1823
+MANAGERPID = 1833
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-be2c8c37-7bbc-4979-9702-78ba195fc424.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-5b1dcfe0-c689-4d62-bd99-6c807539baee.sock
 # environment
 LC_NAME = en_US.UTF-8
 # environment
 VSCODE_CWD = /home/islamghany
-# environment
-GOPROXY = https://proxy.golang.org,direct
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
@@ -97,11 +93,9 @@ GJS_DEBUG_OUTPUT = stderr
 # environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
-SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2043,unix/islamghany:/tmp/.ICE-unix/2043
+SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2040,unix/islamghany:/tmp/.ICE-unix/2040
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
-# environment
-GOPATH = /home/islamghany/go
 # makefile (from 'Makefile', line 82)
 linker_flags = '-s -X main.buildTime=${current_time} -X main.version=${git_description}'
 # environment
@@ -111,7 +105,7 @@ VSCODE_LOG_STACK = false
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = 48b880056bf34fa8997523162ea52476
+INVOCATION_ID = 27795d9e04ba41278be2d5c657215d3c
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -121,7 +115,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 50251
+GIO_LAUNCHED_DESKTOP_FILE_PID = 38475
 # automatic
 %F = $(notdir $%)
 # environment
@@ -133,13 +127,13 @@ PWD = /home/islamghany/Drive/Code/Go/greenlight
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 2011
+SSH_AGENT_PID = 2009
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
 GTK_MODULES = gail:atk-bridge
 # environment
-GOMODCACHE = /home/islamghany/go/pkg/mod
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
 HOME = /home/islamghany
 # environment
@@ -256,18 +250,18 @@ LC_IDENTIFICATION = en_US.UTF-8
 .RECIPEPREFIX := 
 # environment
 LC_ADDRESS = en_US.UTF-8
-# makefile (from '.envrc', line 6)
-REDIS_HOST = redis-19934.c245.us-east-1-3.ec2.cloud.redislabs.com
+# makefile (from '.envrc', line 9)
+REDIS_HOST = localhost
 # environment
 LANG = C
-# makefile (from '.envrc', line 7)
-REDIS_PORT = 19934
+# makefile (from '.envrc', line 10)
+REDIS_PORT = 6739
 # environment
-VSCODE_PID = 50251
+VSCODE_PID = 38475
 # environment
 NVM_RC_VERSION = 
 # variable set hash-table stats:
-# Load=127/1024=12%, Rehash=0, Collisions=20/155=13%
+# Load=124/1024=12%, Rehash=0, Collisions=19/152=12%
 
 # Pattern-specific Variable Values
 
@@ -275,9 +269,9 @@ NVM_RC_VERSION =
 
 # Directories
 
-# . (device 2049, inode 11273009): 17 files, no impossibilities.
+# . (device 2049, inode 11273009): 21 files, no impossibilities.
 
-# 17 files, no impossibilities in 1 directories.
+# 21 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -291,12 +285,12 @@ all:
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has not been updated.
- 
 
 .PHONY: help confirm run/api db/psql db/migrations/new db/migrations/up audit vendor build/api
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
+ 
 
 db/migrations/new:
 #  Phony target (prerequisite of .PHONY).
@@ -381,7 +375,7 @@ db/migrations/up: confirm
 # Not a target:
 .envrc:
 #  Implicit rule search has been done.
-#  Last modified 2022-06-08 15:29:43.540755372
+#  Last modified 2022-07-28 12:02:17.799402247
 #  File has been updated.
 #  Successfully updated.
 
@@ -420,12 +414,12 @@ vendor:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 32 / storage = 270 B / avg = 8 B
-# current buf: size = 8162 B / used = 270 B / count = 32 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 36 / storage = 322 B / avg = 8 B
+# current buf: size = 8162 B / used = 322 B / count = 36 / avg = 8 B
 
-# strcache performance: lookups = 77 / hit rate = 58%
+# strcache performance: lookups = 81 / hit rate = 55%
 # hash-table stats:
-# Load=32/8192=0%, Rehash=0, Collisions=1/77=1%
-# Finished Make data base on Wed Jul 27 14:03:42 2022
+# Load=36/8192=0%, Rehash=0, Collisions=1/81=1%
+# Finished Make data base on Sun Aug  7 09:29:01 2022
 
  
