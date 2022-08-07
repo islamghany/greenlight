@@ -33,3 +33,7 @@ to stop the containers hit _Ctrl+C_
     The fix works like this:<br/> - Alice and Bob’s goroutines both call GetMovie() to retrieve a copy of the movie record. Both of these records have the version number N. - Alice and Bob’s goroutines make their respective changes to the movie record. - Alice and Bob’s goroutines call UpdateMovie() with their copies of the movie record. But the update is only executed if the version number in the database is still N. If it has changed, then we don’t execute the update and send the client an error message instead.
 
     This means that the first update request that reaches our database will succeed, and whoever is making the second update will receive an error message instead of having their change applied.
+    
+### Caching
+for cashing i used Redis to store the frequently accessed movies.
+i used 80-20 rule, i.e 20% of daily read volume for movies is generating 80% of traffic which means that certain movies are so popular that the majority of users read them, This dictates that we can try caching 20% of daily read volume of movies.
