@@ -80,7 +80,7 @@ func main() {
 	loadEnvVars(&conf)
 	flag.IntVar(&conf.port, "port", 4000, "API Server port")
 	flag.StringVar(&conf.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&conf.db.dsn, "db-dsn", "", "data source name")
+	flag.StringVar(&conf.db.dsn, "db-dsn", conf.vars.dbDSN, "data source name")
 
 	// Read the connection pool settings from command-line flags into the config struct.
 	// Notice the default values that we're using?
@@ -213,7 +213,7 @@ func openDB(conf config) (*sql.DB, error) {
 func openRedis(host, port, username, password string) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Password: "",
-		Addr:     "redis:6379",
+		Addr:     fmt.Sprint(host, ":", port),
 		DB:       0,
 		//Username: username,
 	})
@@ -235,6 +235,9 @@ func loadEnvVars(conf *config) {
 	conf.vars.emailPassword = os.Getenv("EMAIL_PASSWORD")
 	conf.vars.clientUrl = os.Getenv("CLIENT_URL")
 	conf.vars.redisHost = os.Getenv("REDIS_HOST")
+	if conf.vars.redisHost == "" {
+		conf.vars.redisHost = "localhost"
+	}
 	conf.vars.redisPort = os.Getenv("REDIS_PORT")
 	conf.vars.redisPassword = os.Getenv("REDIS_PASSWORD")
 }
