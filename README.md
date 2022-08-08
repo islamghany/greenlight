@@ -19,7 +19,7 @@ to stop the containers hit _Ctrl+C_
 ### database
 
 - The database that was selected for this project was PosgresSQL. <br/>
-  and to interact with database i used the DATABASE/SQL package, it's very fast & strightforward, manual mapping SQL fileds to variable, of course there are other options to interact with the postgres such as GORM( it's a CRUD fucntion already implemented, very short production code the, cons: run slowly on high load, ... run slower 6x time than DATABASE/SQL), and SQLC(it's very fast & easy to use, automatic code generation, catch errors before generating code).
+  and to interact with database i used the DATABASE/SQL package, it's very fast & straightforward, manual mapping SQL fields to variable, of course there are other options to interact with the postgres such as GORM( it's a CRUD function already implemented, very short production code the, cons: run slowly on high load, ... run slower 6x time than DATABASE/SQL), and SQLC(it's very fast & easy to use, automatic code generation, catch errors before generating code).
 
 - Establishing the connection pool:<br/>
   estimating the ‘in-use’ connections and ‘idle’ connections.<br/>
@@ -37,3 +37,22 @@ to stop the containers hit _Ctrl+C_
 ### Caching
 for cashing i used Redis to store the frequently accessed movies.
 i used 80-20 rule, i.e 20% of daily read volume for movies is generating 80% of traffic which means that certain movies are so popular that the majority of users read them, This dictates that we can try caching 20% of daily read volume of movies.
+
+### Security
+when designing an app there are some security considerations you must give attention to, here i will demonstrate how i dealt with some of them.
+
+- *IP-based Rate Limiting*: this application is a public api that any one can send requests to it, so it's very easy for the client to making too many requests too quickly and putting excessive strain on the server, and the server could crash.<br/>
+<br/>
+The solution for this problem is straightforward, create an in-memory map of rate limiters(object that store information about the client IP), using the IP address for each client as the map key.<br/>
+when the client sends a request we see the number of requests he made in the last second if there have been too many then it should send the client a `429 Too Many Requests` response.
+    *i have set it to 2 requests per second, with a maximum of 4 requests in a burst.*
+    <br/>
+    there is one problem with the above approach is that the map will grow indefinitely, taking up more and more resources with every new IP address and rate limiter that we add.<br />
+    *so to prevent this from happening we can run a function in the background periodically(every 1 minute) that remove  any clients that we haven’t been seen recently from the map(3 minutes).*
+    
+    
+    
+    
+    
+    
+    
