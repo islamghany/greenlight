@@ -50,9 +50,16 @@ when the client sends a request we see the number of requests he made in the las
     there is one problem with the above approach is that the map will grow indefinitely, taking up more and more resources with every new IP address and rate limiter that we add.<br />
     *so to prevent this from happening we can run a function in the background periodically(every 1 minute) that remove  any clients that we haven’t been seen recently from the map(3 minutes).*
     
+- *Restricting Inputs:* to get around the problems of SQL Injection and denial-of-service attack, i have to be known what is the data that user give me and what data i want for this specific endpoint and if the provided data suits that endpoint or not.<br />
+Things to put in mind when processing the client's provided data
+	- the body must be JSON, not malformed, contains no errors.
+	- json types must match the types we are trying to decode into.
+	- the request must contains body if it's required, *one body*.
+	- disallow unknown fields .i.e the client provide an extra field that is not required for this specific endpoint.
+	- limit the size of the request body (1 MB)
+	- validating JSON Input.
     
-    
-    
+   all these challenges i figured out a native solution for them.
     
     
     
