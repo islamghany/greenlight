@@ -60,12 +60,26 @@ Things to put in mind when processing the client's provided data
 	- validating JSON Input.
     
    all these challenges i figured out a native solution for them.
-    
-    
-     ### Autentication & Authorization
+   
+ ### Autentication & Authorization
   i choose to work with the Stateful token authentication (secure random string. This token — or a fast hash of it — is stored server-side in a database, alongside the user ID and an expiry time for the token.)<br/>
   Stateful authentication tokens is very good for monolithic backend apps.<br />
   although there are a lot of other techniques for authenticating a user, from my point of view this is the best technique suit this app.
    <br /><br />
     Permission-based Authorization: only users who have a specific permission can perform specific operations, for example if user want read from movies he has to have the permission `movies:read` and if he want to write to a movie he has to have `movies:write` permission etc..
+    
+###  Miscellaneous
+there are some functionalities have to exist in any robust app such..<br/>
+- Logging system : when an error occurs there must be explanation why error occurs and where it occurs.
+- Graceful Shutdown : when the app crash or forcing to shutdown, we must to safely stop the running application.
+- Sending mails : when the user register for the first time, link will send to his mail so he can activate his account.
+- Metrics : `/debug/vars` Display application metrics .i.e
+ performing and what resources it is using.
+    
+    
+    
+    
+    
+    
+    
     
