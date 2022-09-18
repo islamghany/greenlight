@@ -17,11 +17,13 @@ services:
       - POSTGRES_DB=greenlight
     networks:
       greenlight-net:  
-    
+    volumes:
+      - ./db-data/postgres/:/var//lib/postgres/data
+
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./../greenlight-service
+      dockerfile: ./../greenlight-service/Dockerfile
     depends_on:
       - postgres
       - redis
@@ -34,8 +36,18 @@ services:
     entrypoint: ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
     command: ["/app/main"]
     networks:
-      greenlight-net:  
+      greenlight-net:
+
+  mailhog:
+    image: "mailhog/mailhog:latest"   
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      greenlight-net:
+
 networks:
   greenlight-net:
 
 
+  

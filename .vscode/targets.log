@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Aug  7 09:29:01 2022
+# Make data base, printed on Sun Sep 18 14:05:17 2022
 
 # Variables
 
@@ -32,8 +32,6 @@ XDG_SESSION_TYPE = x11
 VSCODE_LOG_NATIVE = false
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
-# environment
-IM_CONFIG_PHASE = 1
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
 # environment
@@ -47,21 +45,21 @@ CURDIR := /home/islamghany/Drive/Code/Go/greenlight
 # makefile
 SHELL = /bin/sh
 # environment
+VTE_VERSION = 6003
+# environment
 VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
-# makefile (from '.envrc', line 2)
-EMAIL_PASSWORD = islamghany3@
 # environment
-_ = /usr/share/code/code
+_ = /usr/bin/code
 # environment
-JOURNAL_STREAM = 9:49933
+JOURNAL_STREAM = 9:50033
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
-# makefile (from '.envrc', line 1)
-MAKEFILE_LIST :=  Makefile .envrc
+# makefile
+MAKEFILE_LIST := 
 # automatic
 @F = $(notdir $@)
 # environment
-GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
+IM_CONFIG_PHASE = 1
 # environment
 USERNAME = islamghany
 # environment
@@ -69,35 +67,35 @@ MAKELEVEL := 0
 # environment
 XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
 # environment
-DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus,guid=a47b39f0953975ab1bb3eb916326c8f1
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-MANAGERPID = 1833
+MANAGERPID = 2006
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-5b1dcfe0-c689-4d62-bd99-6c807539baee.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-107ccc15-231f-4095-9bd1-c54c39bd097c.sock
 # environment
 LC_NAME = en_US.UTF-8
 # environment
-VSCODE_CWD = /home/islamghany
+VSCODE_CWD = /home/islamghany/Drive/Code/Go/greenlight
+# environment
+GOPROXY = https://proxy.golang.org,direct
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
 PATH = /home/islamghany/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/islamghany/go/bin
-# makefile (from 'Makefile', line 80)
-current_time = $(shell date --iso-8601=seconds)
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-GJS_DEBUG_OUTPUT = stderr
-# environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
-SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2040,unix/islamghany:/tmp/.ICE-unix/2040
+SESSION_MANAGER = local/islamghany:@/tmp/.ICE-unix/2215,unix/islamghany:/tmp/.ICE-unix/2215
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
-# makefile (from 'Makefile', line 82)
-linker_flags = '-s -X main.buildTime=${current_time} -X main.version=${git_description}'
+# environment
+GOPATH = /home/islamghany/go
 # environment
 XDG_MENU_PREFIX = gnome-
 # environment
@@ -105,17 +103,17 @@ VSCODE_LOG_STACK = false
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = 27795d9e04ba41278be2d5c657215d3c
+INVOCATION_ID = 745392948df54ed080d2efad3e12403e
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
-LS_COLORS = 
+ELECTRON_NO_ATTACH_CONSOLE = 1
+# environment
+LS_COLORS = rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:
 # environment
 XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
-# environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 38475
 # automatic
 %F = $(notdir $%)
 # environment
@@ -123,21 +121,24 @@ DISPLAY = :0
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
+ 
 PWD = /home/islamghany/Drive/Code/Go/greenlight
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 2009
+SSH_AGENT_PID = 2183
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
 GTK_MODULES = gail:atk-bridge
 # environment
-VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+GOMODCACHE = /home/islamghany/go/pkg/mod
 # environment
 HOME = /home/islamghany
 # environment
 LC_MEASUREMENT = en_US.UTF-8
+# environment
+VSCODE_CLI = 1
 # environment
 VSCODE_CODE_CACHE_PATH = /home/islamghany/.config/Code/CachedData/57fd6d0195bb9b9d1b49f6da5db789060795de47
 # environment
@@ -156,10 +157,10 @@ VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 GNOME_DESKTOP_SESSION_ID = this-is-deprecated
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
-# makefile (from '.envrc', line 4)
-GREENLIGHT_USERID_TOKEN = greenlight-userId-token
 # environment
 LC_TIME = en_US.UTF-8
+# environment
+COLORTERM = truecolor
 # default
 MAKE = $(MAKE_COMMAND)
 # default
@@ -167,7 +168,7 @@ MAKECMDGOALS := all
 # environment
 QT_IM_MODULE = ibus
 # environment
-SHLVL = 0
+SHLVL = 1
 # environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # default
@@ -177,21 +178,19 @@ USER = islamghany
 # environment
 LC_MONETARY = en_US.UTF-8
 # makefile
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := 
 # environment
 XDG_CURRENT_DESKTOP = Unity
 # environment
 LESS = -R
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
-# makefile (from '.envrc', line 8)
-REDIS_PASSWORD = dqFbTrJAXOfhaPaEdHZti8R3HRwcGdx7
 # environment
 LC_TELEPHONE = en_US.UTF-8
 # default
 MAKE_COMMAND := make
 # environment
-OLDPWD = /home/islamghany
+OLDPWD = /home/islamghany/Drive/Code/Go/greenlight
 # default
 .VARIABLES := 
 # automatic
@@ -214,28 +213,26 @@ GDK_BACKEND = x11
 LC_PAPER = en_US.UTF-8
 # environment
 QT_ACCESSIBILITY = 1
-# makefile (from 'Makefile', line 81)
-git_description = $(shell git describe --always --dirty)
 # default
 MAKEFILES := 
 # environment
 LC_NUMERIC = en_US.UTF-8
 # automatic
 <F = $(notdir $<)
-# makefile (from '.envrc', line 1)
+# environment
 GREENLIGHT_DB_DSN = postgres://greenlight:islamghany@localhost/greenlight
 # environment
 PAGER = less
 # environment
 LC_ALL = C
-# makefile (from '.envrc', line 5)
-CLIENT_URL = http://localhost:3000/
 # environment
-GJS_DEBUG_TOPICS = JS ERROR;JS LOG
+DBUS_STARTER_BUS_TYPE = session
+# environment
+GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/c99f185c_f4df_4ca9_b245_d40d3d850353
 # automatic
 ^F = $(notdir $^)
-# makefile (from '.envrc', line 3)
-GREENLIGHT_TOKEN = greenlight-token
+# environment
+GNOME_TERMINAL_SERVICE = :1.1039
 # default
 SUFFIXES := 
 # environment
@@ -250,18 +247,18 @@ LC_IDENTIFICATION = en_US.UTF-8
 .RECIPEPREFIX := 
 # environment
 LC_ADDRESS = en_US.UTF-8
-# makefile (from '.envrc', line 9)
-REDIS_HOST = localhost
 # environment
 LANG = C
-# makefile (from '.envrc', line 10)
-REDIS_PORT = 6739
 # environment
-VSCODE_PID = 38475
+TERM = xterm-256color
+# environment
+VSCODE_PID = 19951
+# environment
+DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=a47b39f0953975ab1bb3eb916326c8f1
 # environment
 NVM_RC_VERSION = 
 # variable set hash-table stats:
-# Load=124/1024=12%, Rehash=0, Collisions=19/152=12%
+# Load=122/1024=12%, Rehash=0, Collisions=20/144=14%
 
 # Pattern-specific Variable Values
 
@@ -269,9 +266,9 @@ NVM_RC_VERSION =
 
 # Directories
 
-# . (device 2049, inode 11273009): 21 files, no impossibilities.
+# . (device 2049, inode 11273009): 9 files, no impossibilities.
 
-# 21 files, no impossibilities in 1 directories.
+# 9 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -286,54 +283,20 @@ all:
 #  File does not exist.
 #  File has not been updated.
 
-.PHONY: help confirm run/api db/psql db/migrations/new db/migrations/up audit vendor build/api
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
- 
-
-db/migrations/new:
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 39):
-	@echo 'Creating migration files for ${name}...'
-	migrate create -seq -ext=.sql -dir=./migrations ${name}
-
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-06-08 12:31:33.845105402
+#  File does not exist.
 #  File has been updated.
-#  Successfully updated.
+#  Failed to be updated.
 
-confirm:
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
+# Not a target:
+ 
+makefile:
+#  Implicit rule search has been done.
 #  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 16):
-	@echo -n 'Are you sure? [y/N] ' && read ans && [ $${ans:-N} = y ]
-
-help:
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 11):
-	@echo 'Usage:'
-	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
-
-build/api:
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 87):
-	@echo 'Building cmd/api...'
-	go build -ldflags=${linker_flags} -o=./bin/api ./cmd/api
-	#GOOS=linux GOARCH=amd64 go build -ldflags=${linker_flags} -o=./bin/linux_amd64/api ./cmd/api
+#  File has been updated.
+#  Failed to be updated.
 
 # Not a target:
 .DEFAULT:
@@ -341,85 +304,27 @@ build/api:
 #  Modification time never checked.
 #  File has not been updated.
 
-audit: vendor
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 56):
-	@echo 'Formatting code...'
-	go fmt ./...
-	@echo 'Vetting code...'
-	go vet ./...
-	staticcheck ./...
-	@echo 'Running tests...'
-	go test -race -vet=off ./...
-
-db/psql:
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 34):
-	psql ${GREENLIGHT_DB_DSN}
-
-db/migrations/up: confirm
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 45):
-	@echo 'Running up migrations...'
-	migrate -path ./migrations -database ${GREENLIGHT_DB_DSN} up
-
 # Not a target:
-.envrc:
+GNUmakefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-28 12:02:17.799402247
+#  File does not exist.
 #  File has been updated.
-#  Successfully updated.
-
-run/dev:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 30):
-	@go run ./sandbox/main.go
-
-run/api:
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 26):
-	@go run ./cmd/api -db-dsn=${GREENLIGHT_DB_DSN}
-
-vendor:
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 68):
-	@echo 'Tidying and verifying module dependencies...'
-	go mod tidy
-	go mod verify
-	@echo 'Vendoring dependencies...'
-	go mod vendor
+#  Failed to be updated.
 
 # files hash-table stats:
-# Load=16/1024=2%, Rehash=0, Collisions=0/55=0%
+# Load=6/1024=1%, Rehash=0, Collisions=0/15=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 36 / storage = 322 B / avg = 8 B
-# current buf: size = 8162 B / used = 322 B / count = 36 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 17 / storage = 154 B / avg = 9 B
+# current buf: size = 8162 B / used = 154 B / count = 17 / avg = 9 B
 
-# strcache performance: lookups = 81 / hit rate = 55%
+# strcache performance: lookups = 20 / hit rate = 15%
 # hash-table stats:
-# Load=36/8192=0%, Rehash=0, Collisions=1/81=1%
-# Finished Make data base on Sun Aug  7 09:29:01 2022
+# Load=17/8192=0%, Rehash=0, Collisions=1/20=5%
+# Finished Make data base on Sun Sep 18 14:05:17 2022
 
  
