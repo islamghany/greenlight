@@ -3,6 +3,7 @@ services:
 
   redis: 
     image: redis:7.0.4-alpine
+    restart: always
     hostname: redis
     ports:
       - "6379:6379"
@@ -11,6 +12,7 @@ services:
    
   postgres:
     image: postgres:12-alpine
+    restart: always
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=islamghany
@@ -20,10 +22,27 @@ services:
     volumes:
       - ./db-data/postgres/:/var//lib/postgres/data
 
+#http://mail-service/send
+  mail-service:
+    build:
+      context: ./../mail-service
+      dockerfile: ./../mail-service/Dockerfile
+    restart: always
+    environment:
+      MAIL_DOMAIN: localhost
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_ENCRYPTION: none
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      FROM_NAME: "John Smith"
+      FROM_ADDRESS: john.smith@example.com
+    
   api:
     build:
       context: ./../greenlight-service
       dockerfile: ./../greenlight-service/Dockerfile
+    restart: always
     depends_on:
       - postgres
       - redis
@@ -39,12 +58,15 @@ services:
       greenlight-net:
 
   mailhog:
-    image: "mailhog/mailhog:latest"   
+    image: "mailhog/mailhog:latest"
+    restart: always
     ports:
       - "1025:1025"
       - "8025:8025"
     networks:
       greenlight-net:
+
+
 
 networks:
   greenlight-net:

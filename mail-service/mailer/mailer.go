@@ -35,7 +35,7 @@ type Message struct {
 	From         string
 	FromName     string
 	To           string
-	templateFile string
+	TemplateFile string
 	Attachments  []string
 	Data         interface{}
 }
@@ -72,7 +72,7 @@ func (m *Mailer) Send(msg Message) error {
 		msg.FromName = m.FromName
 	}
 
-	tmpl, err := template.New("email").ParseFS(templateFS, "templates/"+msg.templateFile)
+	tmpl, err := template.New("email").ParseFS(templateFS, "templates/"+msg.TemplateFile)
 
 	if err != nil {
 		return err

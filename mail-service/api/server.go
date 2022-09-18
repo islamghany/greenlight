@@ -2,17 +2,21 @@ package api
 
 import (
 	"fmt"
+	"mailer-service/mailer"
 	"net/http"
 	"time"
 )
 
 type envelope map[string]interface{}
 type Server struct {
+	mailer mailer.Mailer
 }
 
-func NewServer() (*Server, error) {
+func NewServer(m mailer.Mail) (*Server, error) {
 
-	return &Server{}, nil
+	return &Server{
+		mailer: *mailer.NewMailer(m),
+	}, nil
 
 }
 
