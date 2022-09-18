@@ -1,6 +1,8 @@
-# greenlight
+# Greenlight
 
 Global Movies API
+
+[Greenlight api Docs](https://app.swaggerhub.com/apis-docs/islamghany1/greenlight/1.0.0)
 
 ## Installation
 
