@@ -1,7 +1,7 @@
 version: "3.3"
 services:
 
-  redis: 
+  redis:
     image: redis:7.0.4-alpine
     restart: always
     hostname: redis
@@ -9,7 +9,8 @@ services:
       - "6379:6379"
     networks:
       greenlight-net:
-   
+
+
   postgres:
     image: postgres:12-alpine
     restart: always
@@ -18,11 +19,17 @@ services:
       - POSTGRES_PASSWORD=islamghany
       - POSTGRES_DB=greenlight
     networks:
-      greenlight-net:  
+      greenlight-net:
     volumes:
       - ./db-data/postgres/:/var//lib/postgres/data
 
-#http://mail-service/send
+  listener-service:
+    build:
+      context: ./../listener-service
+      dockerfile: ./../listener-service/Dockerfile
+    restart: always
+    networks:
+      greenlight-net:
   mail-service:
     build:
       context: ./../mail-service
@@ -39,7 +46,8 @@ services:
       FROM_ADDRESS: islam.ghany@example.com
     networks:
       greenlight-net:
-    
+
+
   api:
     build:
       context: ./../greenlight-service
@@ -49,15 +57,22 @@ services:
       - postgres
       - redis
     ports:
-      - "4000:4000"  
+      - "4000:4000"
     environment:
       GREENLIGHT_DB_DSN: postgresql://root:islamghany@postgres:5432/greenlight?sslmode=disable
       REDIS_HOST: redis
       REDIS_PORT: 6379
-    entrypoint: ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
-    command: ["/app/main"]
+    entrypoint:
+      [
+        "/app/wait-for.sh",
+        "postgres:5432",
+        "--",
+        "/app/start.sh"
+      ]
+    command: [ "/app/main" ]
     networks:
       greenlight-net:
+
 
   mailhog:
     image: "mailhog/mailhog:latest"
@@ -69,9 +84,18 @@ services:
       greenlight-net:
 
 
-
+  rabbitmq:
+    image: "rabbitmq:3.10.7-alpine"
+    ports:
+      - "5672:5672"
+    deploy:
+      mode: replicated
+      replicas: 1
+    volumes:
+      - ./db-data/rabbitmq/:/var/lib/rabbitmq/
+    networks:
+      greenlight-net:
 networks:
   greenlight-net:
 
 
-  

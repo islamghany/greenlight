@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"expvar"
 	"fmt"
 	"net/http"
@@ -37,33 +35,39 @@ func (app *application) routes() http.Handler {
 			return
 		}
 
-		// call the mail service
-		mailServiceURL := "http://mail-service/send"
+		err = app.pushToQueue("name", string(jsonData))
 
-		// post to mail service
-		request, err := http.NewRequest("POST", mailServiceURL, bytes.NewBuffer(jsonData))
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
+		// // call the mail service
+		// mailServiceURL := "http://mail-service/send"
 
-		request.Header.Set("Content-Type", "application/json")
+		// // post to mail service
+		// request, err := http.NewRequest("POST", mailServiceURL, bytes.NewBuffer(jsonData))
+		// if err != nil {
+		// 	app.serverErrorResponse(w, r, err)
+		// 	return
+		// }
 
-		client := &http.Client{}
-		response, err := client.Do(request)
-		if err != nil {
-			app.serverErrorResponse(w, r, err)
-			return
-		}
-		defer response.Body.Close()
+		// request.Header.Set("Content-Type", "application/json")
 
-		// make sure we get back the right status code
-		if response.StatusCode != http.StatusCreated {
-			app.serverErrorResponse(w, r, errors.New("error calling mail service"))
-			return
-		}
+		// client := &http.Client{}
+		// response, err := client.Do(request)
+		// if err != nil {
+		// 	app.serverErrorResponse(w, r, err)
+		// 	return
+		// }
+		// defer response.Body.Close()
 
-		// send back json
+		// // make sure we get back the right status code
+		// if response.StatusCode != http.StatusCreated {
+		// 	app.serverErrorResponse(w, r, errors.New("error calling mail service"))
+		// 	return
+		// }
+
+		// // send back json
 
 		err = app.writeJson(w, http.StatusCreated, envelope{"user": msg.To}, nil)
 		if err != nil {

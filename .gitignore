@@ -2,3 +2,5 @@
 bin/
 
 /sandbox
+
+/project/db-data

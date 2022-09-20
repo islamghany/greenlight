@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"islamghany.greenlight/internals/data"
+	"islamghany.greenlight/internals/event"
 	"islamghany.greenlight/internals/validator"
 
 	"github.com/julienschmidt/httprouter"
@@ -188,4 +189,26 @@ func (app *application) addUserCookies(w http.ResponseWriter, token *data.Token)
 func (app *application) removeUsersCookies(w http.ResponseWriter) {
 	app.removeCookies(w, app.config.vars.greenlightUserTokenCookie)
 	app.removeCookies(w, app.config.vars.greenlightUserIDCookie)
+}
+
+func (app *application) pushToQueue(name, msg string) error {
+	e, err := event.NewEventEmitter(app.amqp)
+
+	if err != nil {
+		return err
+	}
+
+	payload := event.Payload{
+		Name: name,
+		Data: msg,
+	}
+
+	j, _ := json.MarshalIndent(&payload, "", "\t")
+
+	err = e.Push(string(j), "log.INFO")
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

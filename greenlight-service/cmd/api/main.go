@@ -6,6 +6,7 @@ import (
 	"expvar"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"sync"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"islamghany.greenlight/internals/data"
 	"islamghany.greenlight/internals/jsonlog"
 	"islamghany.greenlight/internals/mailer"
@@ -72,6 +74,7 @@ type application struct {
 	models data.Models
 	mailer mailer.Mailer
 	wg     sync.WaitGroup
+	amqp   *amqp.Connection
 }
 
 func main() {
@@ -140,6 +143,14 @@ func main() {
 
 	logger.PrintInfo("database connection pool established", nil)
 
+	rabbitConn, err := connectAMQP(10, 1*time.Second)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rabbitConn.Close()
+	logger.PrintInfo("rabbitmq connection established", nil)
+
 	expvar.NewString("version").Set(version)
 
 	// Publish the number of active goroutines.
@@ -161,6 +172,7 @@ func main() {
 		config: conf,
 		logger: logger,
 		models: data.NewModels(db, rdb),
+		amqp:   rabbitConn,
 		mailer: mailer.New(conf.smtp.host, conf.smtp.port, conf.smtp.username, conf.smtp.password, conf.smtp.sender)}
 	err = app.serve()
 	if err != nil {
@@ -240,4 +252,30 @@ func loadEnvVars(conf *config) {
 	}
 	conf.vars.redisPort = os.Getenv("REDIS_PORT")
 	conf.vars.redisPassword = os.Getenv("REDIS_PASSWORD")
+}
+
+func connectAMQP(counts int64, backOff time.Duration) (*amqp.Connection, error) {
+	var connection *amqp.Connection
+
+	for {
+		c, err := amqp.Dial("amqp://guest:guest@rabbitmq")
+		if err == nil {
+			log.Println("connected to RabbitMQ")
+			connection = c
+			break
+		}
+
+		fmt.Println("RabbitMQ not yet read")
+		counts--
+		if counts == 0 {
+			return nil, fmt.Errorf("Can not connect to the RabbitMQ")
+		}
+		backOff = backOff + (time.Second * 2)
+
+		fmt.Println("Backing off.....")
+		time.Sleep(backOff)
+		continue
+
+	}
+	return connection, nil
 }
