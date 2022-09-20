@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "path": "greenlight-service"
+    },
+    {
+      "path": "mail-service"
+    },
+    {
+      "path": "project"
+    }
+  ]
+}

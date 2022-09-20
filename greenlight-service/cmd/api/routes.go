@@ -58,7 +58,7 @@ func (app *application) routes() http.Handler {
 		defer response.Body.Close()
 
 		// make sure we get back the right status code
-		if response.StatusCode != http.StatusAccepted {
+		if response.StatusCode != http.StatusCreated {
 			app.serverErrorResponse(w, r, errors.New("error calling mail service"))
 			return
 		}

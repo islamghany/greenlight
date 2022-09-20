@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"mailer-service/api"
 	"mailer-service/mailer"
@@ -16,6 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	m := mailer.Mail{
 		Domain:      os.Getenv("MAIL_DOMAIN"),
 		Host:        os.Getenv("MAIL_HOST"),
@@ -26,10 +28,12 @@ func main() {
 		FromAddress: os.Getenv("FROM_ADDRESS"),
 		FromName:    os.Getenv("FORM_NAME"),
 	}
+
 	server, err := api.NewServer(m)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("Running the mail service")
 	server.Start(webPort)
 	if err != nil {
 		log.Fatal(err)

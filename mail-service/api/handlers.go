@@ -1,29 +1,28 @@
 package api
 
 import (
-	"fmt"
 	"mailer-service/mailer"
 	"net/http"
 )
 
 func (server *Server) SendMail(w http.ResponseWriter, r *http.Request) {
-	fmt.Print("please work!!")
 	var input struct {
-		From    string `json:"from"`
-		To      string `json:"to"`
-		Subject string `json:"subject"`
-		Message string `json:"message"`
+		From       string   `json:"from"`
+		To         string   `json:"to"`
+		Subject    string   `json:"subject"`
+		Message    string   `json:"message"`
+		Attachment []string `json:"attachments"`
 	}
 
-	err := server.readJSON(w, r, &input)
+	err := server.readJSON(w, r, &input, true)
 	if err != nil {
-		server.serverErrorResponse(w, r, err)
+		server.badRequestResponse(w, r, err)
 		return
 	}
 
 	data := map[string]interface{}{
-		"activationToken": input.Message,
-		"userID":          12312,
+		"subject": input.Subject,
+		"message": input.Message,
 	}
 
 	msg := mailer.Message{
@@ -31,6 +30,7 @@ func (server *Server) SendMail(w http.ResponseWriter, r *http.Request) {
 		To:           input.To,
 		Data:         data,
 		TemplateFile: "user_welcome.tmpl",
+		Attachments:  input.Attachment,
 	}
 
 	err = server.mailer.Send(msg)

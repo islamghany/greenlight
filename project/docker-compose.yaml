@@ -35,8 +35,10 @@ services:
       MAIL_ENCRYPTION: none
       MAIL_USERNAME: ""
       MAIL_PASSWORD: ""
-      FROM_NAME: "John Smith"
-      FROM_ADDRESS: john.smith@example.com
+      FROM_NAME: "islam ghany"
+      FROM_ADDRESS: islam.ghany@example.com
+    networks:
+      greenlight-net:
     
   api:
     build:

@@ -1,9 +1,13 @@
 package api
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 func (server *Server) errorResponse(w http.ResponseWriter, r *http.Request, status int, message interface{}) {
 	env := envelope{"error": message}
+
 	err := server.writeJson(w, status, env, nil)
 
 	if err != nil {
@@ -12,7 +16,7 @@ func (server *Server) errorResponse(w http.ResponseWriter, r *http.Request, stat
 }
 
 func (server *Server) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-
+	fmt.Println(err)
 	message := "the server encountered a problem and could not process your request"
 	server.errorResponse(w, r, http.StatusInternalServerError, message)
 }

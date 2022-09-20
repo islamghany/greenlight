@@ -29,7 +29,7 @@ func (server *Server) writeJson(w http.ResponseWriter, status int, data envelope
 	return nil
 }
 
-func (server *Server) readJSON(w http.ResponseWriter, r *http.Request, dest interface{}) error {
+func (server *Server) readJSON(w http.ResponseWriter, r *http.Request, dest interface{}, skipOmitted bool) error {
 
 	maxBytes := 1_048_576 // 1mg
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -51,7 +51,7 @@ func (server *Server) readJSON(w http.ResponseWriter, r *http.Request, dest inte
 			return errors.New("body contains badly-formed JSON")
 
 		case errors.As(err, &unmarshalTypeError):
-			if unmarshalTypeError.Field != "" {
+			if unmarshalTypeError.Field != "" && skipOmitted == false {
 				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
 			}
 			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
