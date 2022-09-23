@@ -407,7 +407,6 @@ func (m MovieModel) GetMostLikes() ([]*Movie, error) {
 }
 
 func (m *MovieModel) CacheMost20PercentageView() error {
-	fmt.Println("begin")
 	query := `
 		SELECT count(*) as number from movies m
 		join "views" v on v.movie_id = m.id;
@@ -450,7 +449,6 @@ limit $1;
 		return err
 	}
 	defer rows.Close()
-	fmt.Println("fetch the movies")
 	var keys []string
 	var values []map[string]interface{}
 	for rows.Next() {
@@ -480,13 +478,12 @@ limit $1;
 		values = append(values, m)
 
 	}
-	fmt.Println("full arrays")
 	if err = rows.Err(); err != nil {
 		return err
 	}
 
 	err = PipeSet(m.RDB, keys, values, 3*time.Hour)
-	fmt.Println("finish successfully")
+	fmt.Println("Cached the movies in redis successfully!")
 	return err
 
 }

@@ -127,7 +127,6 @@ func (app *application) createResetPasswordTokenHandler(w http.ResponseWriter, r
 			app.config.vars.clientUrl,
 			token.Plaintext)
 
-		app.logger.PrintInfo(jsonData, nil)
 		err = app.pushToQueue("name", jsonData)
 		if err != nil {
 			app.logger.PrintError(err, nil)

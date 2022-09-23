@@ -81,11 +81,6 @@ func (c *Consumer) Listen(topics []string) error {
 	forerver := make(chan bool)
 	go func() {
 		for d := range messages {
-			//	var p Payload
-
-			fmt.Println("string :  ", string(d.Body))
-			// _ = json.Unmarshal(d.Body, &p)
-
 			go handlePayload(d.Body)
 		}
 	}()
@@ -99,7 +94,6 @@ func (c *Consumer) Listen(topics []string) error {
 func handlePayload(p []byte) {
 	var err error
 
-	fmt.Println("Payload has come", p)
 	err = sendMail(p)
 	if err != nil {
 		log.Println(err)
@@ -150,8 +144,7 @@ func sendMailViaGRPC(payload []byte) error {
 		return err
 	}
 
-	fmt.Println(dest)
-	res, err := c.SendMail(ctx, &mailpb.MailRequest{
+	_, err = c.SendMail(ctx, &mailpb.MailRequest{
 		MailEntry: &mailpb.Mail{
 			From:         dest.From,
 			To:           dest.To,
@@ -161,7 +154,6 @@ func sendMailViaGRPC(payload []byte) error {
 			Attachments:  []string{},
 		},
 	})
-	fmt.Println(res)
 
 	if err != nil {
 		return err
