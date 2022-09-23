@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"crypto/tls"
 	"embed"
+	"errors"
+	"fmt"
 	"html/template"
 	"time"
 
@@ -19,6 +21,10 @@ import (
 
 //go:embed "templates"
 var templateFS embed.FS
+
+var (
+	ErrTemplateNotFound = errors.New("Template not found")
+)
 
 type Mail struct {
 	Domain      string
@@ -75,11 +81,12 @@ func (m *Mailer) Send(msg Message) error {
 	tmpl, err := template.New("email").ParseFS(templateFS, "templates/"+msg.TemplateFile)
 
 	if err != nil {
-		return err
+		return ErrTemplateNotFound
 	}
 
 	// Execute the named template "subject", passing in the dynamic data and storing the
 	// result in a bytes.Buffer variable.
+
 	subject := new(bytes.Buffer)
 	err = tmpl.ExecuteTemplate(subject, "subject", msg.Data)
 	if err != nil {
@@ -91,13 +98,11 @@ func (m *Mailer) Send(msg Message) error {
 	if err != nil {
 		return err
 	}
-
 	htmlBody := new(bytes.Buffer)
 	err = tmpl.ExecuteTemplate(htmlBody, "htmlBody", msg.Data)
 	if err != nil {
 		return err
 	}
-
 	formatedMessageBody := htmlBody.String()
 
 	formatedMessageBody, err = m.inlineCSS(formatedMessageBody)
@@ -110,24 +115,26 @@ func (m *Mailer) Send(msg Message) error {
 	// headers, the SetBody() method to set the plain-text body, and the AddAlternative()
 	// method to set the HTML body. It's important to note that AddAlternative() should
 	// always be called *after* SetBody().
-	server := mail.NewMessage()
-	server.SetHeader("To", msg.To)
-	server.SetHeader("From", msg.From)
-	server.SetHeader("Subject", subject.String())
-	server.SetBody("text/plain", plainBody.String())
-	server.AddAlternative("text/html", htmlBody.String())
-	if len(msg.Attachments) > 0 {
-		for _, x := range msg.Attachments {
-			server.Attach(x)
-		}
-	}
+
+	mailMsg := mail.NewMessage()
+	mailMsg.SetHeader("To", msg.To)
+	mailMsg.SetHeader("From", msg.From)
+	mailMsg.SetHeader("Subject", subject.String())
+	mailMsg.SetBody("text/plain", plainBody.String())
+	mailMsg.AddAlternative("text/html", htmlBody.String())
+	// if len(msg.Attachments) > 0 {
+	// 	for _, x := range msg.Attachments {
+	// 		mailMsg.Attach(x)
+	// 	}
+	// }
 
 	// Call the DialAndSend() method on the dialer, passing in the message to send. This
-	// opens a connection to the SMTP server, sends the message, then closes the
+	// opens a connection to the SMTP mailMsg, sends the message, then closes the
 	// connection. If there is a timeout, it will return a "dial tcp: i/o timeout"
 	// error.
-	err = m.dialer.DialAndSend(server)
+	err = m.dialer.DialAndSend(mailMsg)
 	if err != nil {
+		fmt.Println("error : ", err)
 		return err
 	}
 

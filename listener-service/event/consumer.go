@@ -2,12 +2,16 @@ package event
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"listener-service/mailpb"
 	"log"
 	"net/http"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"google.golang.org/grpc"
 )
 
 type Consumer struct {
@@ -77,10 +81,12 @@ func (c *Consumer) Listen(topics []string) error {
 	forerver := make(chan bool)
 	go func() {
 		for d := range messages {
-			var p Payload
-			_ = json.Unmarshal(d.Body, &p)
+			//	var p Payload
 
-			go handlePayload(p)
+			fmt.Println("string :  ", string(d.Body))
+			// _ = json.Unmarshal(d.Body, &p)
+
+			go handlePayload(d.Body)
 		}
 	}()
 
@@ -90,42 +96,80 @@ func (c *Consumer) Listen(topics []string) error {
 	return nil
 }
 
-func handlePayload(p Payload) {
+func handlePayload(p []byte) {
 	var err error
 
-	fmt.Println("Payload has come", p.Data, p.Name)
-	switch p.Name {
-	case "mail", "event":
-		err = sendMail(p)
-		if err != nil {
-			log.Println(err)
-		}
-	default:
-		err = sendMail(p)
-		if err != nil {
-			log.Println(err)
-		}
+	fmt.Println("Payload has come", p)
+	err = sendMailViaGRPC(p)
+	if err != nil {
+		log.Println(err)
 	}
+	// switch p.Name {
+	// case "mail", "event":
+	// 	err = sendMailViaGRPC(p)
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 	}
+	// default:
+	// 	err = sendMailViaGRPC(p)
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 	}
+	// }
 }
 func logEvent(entry Payload) error {
 	return nil
 }
 
 type MailPayload struct {
-	From    string `json:"from"`
-	To      string `json:"to"`
-	Subject string `json:"subject"`
-	Message string `json:"message"`
+	From         string `json:"from"`
+	To           string `json:"to"`
+	Subject      string `json:"subject"`
+	Message      string `json:"message"`
+	TemplateFile string `json:"templateFile"`
 }
 
+func sendMailViaGRPC(payload []byte) error {
+	conn, err := grpc.Dial("mail-service:50051", grpc.WithInsecure())
+
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	c := mailpb.NewMailSeviceClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+
+	defer cancel()
+	dest := &MailPayload{}
+	err = json.Unmarshal(payload, dest)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	fmt.Println(dest)
+	res, err := c.SendMail(ctx, &mailpb.MailRequest{
+		MailEntry: &mailpb.Mail{
+			From:         dest.From,
+			To:           dest.To,
+			Subject:      dest.Subject,
+			TemplateFile: dest.TemplateFile,
+			Message:      dest.Message,
+			Attachments:  []string{},
+		},
+	})
+	fmt.Println(res)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func sendMail(entry Payload) error {
 
-	// jsonData, err := json.MarshalIndent(entry, "", "\t")
-	// if err != nil {
-	// 	return err
-	// }
-
-	// call the mail service
 	mailServiceURL := "http://mail-service/send"
 
 	// post to mail service

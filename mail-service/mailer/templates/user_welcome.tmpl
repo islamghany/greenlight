@@ -1,15 +1,20 @@
-{{define "subject"}} {{.subject}} {{end}}
+{{define "subject"}}{{.subject}}{{end}}
 
 {{define "plainBody"}}
 Hi,
 
-Thank you for trying our mail service
+Thanks for signing up for a Greenlight account. We're excited to have you on board!
 
+For future reference, your user ID number is {{.userID}}.
 
-{{.message}}
+to activate your account please go this link below.
+{{.activationToken}}
+
+Please note that this is a one-time use token and it will expire in {{.tokenExpirationTime}}
 
 Thanks,
 
+The Greenlight Team
 {{end}}
 
 {{define "htmlBody"}}
@@ -19,19 +24,17 @@ Thanks,
 <head>
     <meta name="viewport" content="width=device-width" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<style>
-    .message{
-        font-size: 50px;
-        font-weight: bold;
-        color: rebeccapurple;
-    }
-</style>
 </head>
 
 <body>
     <p>Hi,</p>
-    <p>Thank you for trying our mail service</p>
-    <p class="message">{{.message}}</p>
+    <p>Thanks for signing up for a Greenlight account. We're excited to have you on board!</p>
+    <p>For future reference, your user ID number is {{.userID}}.</p>
+    <p>to activate your account please go this link below.<p>
+    <a href="{{.activationToken}}" target="_blank">{{.activationToken}}</a>
+    <p>Please note that this is a one-time use token and it will expire in {{.tokenExpirationTime}}</p>
+    <p>Thanks,</p>
+    <p>The Greenlight Team</p>
 </body>
 
 </html>

@@ -198,14 +198,7 @@ func (app *application) pushToQueue(name, msg string) error {
 		return err
 	}
 
-	payload := event.Payload{
-		Name: name,
-		Data: msg,
-	}
-
-	j, _ := json.MarshalIndent(&payload, "", "\t")
-
-	err = e.Push(string(j), "log.INFO")
+	err = e.Push(msg, "mail.SEND")
 
 	if err != nil {
 		return err

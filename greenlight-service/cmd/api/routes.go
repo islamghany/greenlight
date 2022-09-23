@@ -1,9 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"expvar"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -25,51 +25,24 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 	router.HandlerFunc(http.MethodPost, "/send-email", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("heeelelfmg")
-		var msg MailPayload
 
-		err := app.readJSON(w, r, &msg)
-		jsonData, _ := json.MarshalIndent(msg, "", "\t")
+		defer r.Body.Close()
+
+		jsonData, err := io.ReadAll(r.Body)
+
 		if err != nil {
 			app.badRequestResponse(w, r, err)
 			return
 		}
-
+		fmt.Println(jsonData)
 		err = app.pushToQueue("name", string(jsonData))
 
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
-		// // call the mail service
-		// mailServiceURL := "http://mail-service/send"
 
-		// // post to mail service
-		// request, err := http.NewRequest("POST", mailServiceURL, bytes.NewBuffer(jsonData))
-		// if err != nil {
-		// 	app.serverErrorResponse(w, r, err)
-		// 	return
-		// }
-
-		// request.Header.Set("Content-Type", "application/json")
-
-		// client := &http.Client{}
-		// response, err := client.Do(request)
-		// if err != nil {
-		// 	app.serverErrorResponse(w, r, err)
-		// 	return
-		// }
-		// defer response.Body.Close()
-
-		// // make sure we get back the right status code
-		// if response.StatusCode != http.StatusCreated {
-		// 	app.serverErrorResponse(w, r, errors.New("error calling mail service"))
-		// 	return
-		// }
-
-		// // send back json
-
-		err = app.writeJson(w, http.StatusCreated, envelope{"user": msg.To}, nil)
+		err = app.writeJson(w, http.StatusCreated, envelope{"messgae": "message successfully sent to"}, nil)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 		}

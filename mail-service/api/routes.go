@@ -10,6 +10,6 @@ func (server *Server) routes() http.Handler {
 
 	router := httprouter.New()
 
-	router.HandlerFunc(http.MethodPost, "/send", server.SendMail)
+	router.HandlerFunc(http.MethodPost, "/send", server.SendMailHandler)
 	return server.enableCORS(router)
 }

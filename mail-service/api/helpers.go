@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func (server *Server) writeJson(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
@@ -81,4 +83,17 @@ func (server *Server) readJSON(w http.ResponseWriter, r *http.Request, dest inte
 	}
 
 	return nil
+}
+
+func (s *Server) background(fn func()) {
+
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println("ww : ", err)
+			}
+		}()
+		time.Sleep(5 * time.Second)
+		fn()
+	}()
 }

@@ -23,12 +23,14 @@ func NewEventEmitter(conn *amqp.Connection) (*Emitter, error) {
 	return &e, nil
 }
 func (e *Emitter) setup() error {
+	// create a channel
 	ch, err := e.connetion.Channel()
 	if err != nil {
 		return err
 	}
 	defer ch.Close()
 
+	// here i declare a queue, if the queue doesn't exist it will declare it.
 	return declareExchange(ch)
 }
 
@@ -39,7 +41,7 @@ func (e *Emitter) Push(event string, severity string) error {
 	}
 	defer ch.Close()
 
-	log.Println("Pushing to channel")
+	log.Println("Pushing to channel", event)
 	err = ch.Publish(
 		"logs_topic",
 		severity,

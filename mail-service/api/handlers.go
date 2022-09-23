@@ -5,13 +5,13 @@ import (
 	"net/http"
 )
 
-func (server *Server) SendMail(w http.ResponseWriter, r *http.Request) {
+func (server *Server) SendMailHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		From       string   `json:"from"`
-		To         string   `json:"to"`
-		Subject    string   `json:"subject"`
-		Message    string   `json:"message"`
-		Attachment []string `json:"attachments"`
+		From         string                 `json:"from"`
+		To           string                 `json:"to"`
+		Data         map[string]interface{} `json:"data"`
+		TemplateFile string                 `json:"template_file"`
+		Attachment   []string               `json:"attachments"`
 	}
 
 	err := server.readJSON(w, r, &input, true)
@@ -20,23 +20,30 @@ func (server *Server) SendMail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := map[string]interface{}{
-		"subject": input.Subject,
-		"message": input.Message,
+	//data := &map[string]interface{}{}
+
+	if input.TemplateFile == "" {
+		server.badRequestResponse(w, r, mailer.ErrTemplateNotFound)
+		return
 	}
 
 	msg := mailer.Message{
 		From:         input.From,
 		To:           input.To,
-		Data:         data,
-		TemplateFile: "user_welcome.tmpl",
+		Data:         input.Data,
+		TemplateFile: input.TemplateFile,
 		Attachments:  input.Attachment,
 	}
 
 	err = server.mailer.Send(msg)
 
 	if err != nil {
-		server.serverErrorResponse(w, r, err)
+		if err == mailer.ErrTemplateNotFound {
+			server.badRequestResponse(w, r, err)
+
+		} else {
+			server.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

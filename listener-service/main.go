@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// watch the queue and conume events
-	err = consumer.Listen([]string{"log.INFO", "log.WARNING", "log.ERROR"})
+	err = consumer.Listen([]string{"mail.SEND"})
 	if err != nil {
 		log.Println(err)
 	}
