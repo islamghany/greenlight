@@ -100,7 +100,7 @@ func handlePayload(p []byte) {
 	var err error
 
 	fmt.Println("Payload has come", p)
-	err = sendMailViaGRPC(p)
+	err = sendMail(p)
 	if err != nil {
 		log.Println(err)
 	}
@@ -168,12 +168,12 @@ func sendMailViaGRPC(payload []byte) error {
 	}
 	return nil
 }
-func sendMail(entry Payload) error {
+func sendMail(entry []byte) error {
 
 	mailServiceURL := "http://mail-service/send"
 
 	// post to mail service
-	request, err := http.NewRequest("POST", mailServiceURL, bytes.NewBuffer([]byte(entry.Data)))
+	request, err := http.NewRequest("POST", mailServiceURL, bytes.NewBuffer(entry))
 	if err != nil {
 		return err
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 	"github.com/mitchellh/mapstructure"
-	"islamghany.greenlight/internals/mailer"
+	//"islamghany.greenlight/internals/mailer"
 )
 
 var (
@@ -63,21 +63,21 @@ func deserializeGenres(val string) []string {
 
 func main() {
 
-	mail := mailer.New(
-		"smtp.sendgrid.net",
-		587,
-		"apikey",
-		"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",
-		"auth@greenlight.com")
+	// mail := mailer.New(
+	// 	"smtp.sendgrid.net",
+	// 	587,
+	// 	"apikey",
+	// 	"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",
+	// 	"auth@greenlight.com")
 
-	data := map[string]interface{}{
-		"activationToken": "zsfnzdkfjnksanaksnfasn",
-		"userID":          1,
-	}
-	err := mail.Send("islamghany3@gmail.com", "user_welcome.tmpl", data)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// data := map[string]interface{}{
+	// 	"activationToken": "zsfnzdkfjnksanaksnfasn",
+	// 	"userID":          1,
+	// }
+	// err := mail.Send("islamghany3@gmail.com", "user_welcome.tmpl", data)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 	// //	keys := []string{"color", "message"}
 	// rdb, _ := openRedis("redis-19934.c245.us-east-1-3.ec2.cloud.redislabs.com", "19934", "", "dqFbTrJAXOfhaPaEdHZti8R3HRwcGdx7")
 

@@ -17,7 +17,6 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"islamghany.greenlight/internals/data"
 	"islamghany.greenlight/internals/jsonlog"
-	"islamghany.greenlight/internals/mailer"
 )
 
 // version of the application
@@ -42,13 +41,7 @@ type config struct {
 		burst   int
 		enabled bool
 	}
-	smtp struct {
-		host     string
-		port     int
-		username string
-		password string
-		sender   string
-	}
+
 	redis struct {
 		host     string
 		port     string
@@ -64,6 +57,7 @@ type config struct {
 		redisPort                 string
 		redisPassword             string
 		clientUrl                 string
+		greenlightEmail           string
 	}
 }
 
@@ -72,7 +66,6 @@ type application struct {
 	config config
 	logger *jsonlog.Logger
 	models data.Models
-	mailer mailer.Mailer
 	wg     sync.WaitGroup
 	amqp   *amqp.Connection
 }
@@ -93,16 +86,6 @@ func main() {
 	flag.Float64Var(&conf.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
 	flag.IntVar(&conf.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	flag.BoolVar(&conf.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
-
-	// Read the SMTP server configuration settings into the config struct, using the
-	// Mailtrap settings as the default values. IMPORTANT: If you're following along,
-	// make sure to replace the default values for smtp-username and smtp-password
-	// with your own Mailtrap credentials.
-	flag.StringVar(&conf.smtp.host, "smtp-host", "smtp.gmail.com", "SMTP host")
-	flag.IntVar(&conf.smtp.port, "smtp-port", 587, "SMTP port")
-	flag.StringVar(&conf.smtp.username, "smtp-username", "dump.dumper77@gmail.com", "SMTP email")
-	flag.StringVar(&conf.smtp.password, "smtp-password", conf.vars.emailPassword, "SMTP password")
-	flag.StringVar(&conf.smtp.sender, "smtp-sender", "dump.dumper77@gmail.com", "SMTP sender")
 
 	// Read the redis configration setting into the config struct
 	flag.StringVar(&conf.redis.host, "redis-host", conf.vars.redisHost, "redis host string")
@@ -173,7 +156,7 @@ func main() {
 		logger: logger,
 		models: data.NewModels(db, rdb),
 		amqp:   rabbitConn,
-		mailer: mailer.New(conf.smtp.host, conf.smtp.port, conf.smtp.username, conf.smtp.password, conf.smtp.sender)}
+	}
 	err = app.serve()
 	if err != nil {
 		logger.PrintFatal(err, nil)
@@ -246,11 +229,18 @@ func loadEnvVars(conf *config) {
 	conf.vars.greenlightUserIDCookie = os.Getenv("GREENLIGHT_USERID_TOKEN")
 	conf.vars.emailPassword = os.Getenv("EMAIL_PASSWORD")
 	conf.vars.clientUrl = os.Getenv("CLIENT_URL")
+	if conf.vars.clientUrl == "" {
+		conf.vars.clientUrl = "http://localhost:3000"
+	}
 	conf.vars.redisHost = os.Getenv("REDIS_HOST")
 	if conf.vars.redisHost == "" {
 		conf.vars.redisHost = "localhost"
 	}
 	conf.vars.redisPort = os.Getenv("REDIS_PORT")
+	conf.vars.greenlightEmail = os.Getenv("GREENLIGHT_EMAIL")
+	if conf.vars.greenlightEmail == "" {
+		conf.vars.greenlightEmail = "no_replay@greenlight.com"
+	}
 	conf.vars.redisPassword = os.Getenv("REDIS_PASSWORD")
 }
 

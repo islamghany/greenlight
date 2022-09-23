@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"islamghany.greenlight/internals/data"
@@ -106,12 +105,30 @@ func (app *application) createResetPasswordTokenHandler(w http.ResponseWriter, r
 	}
 
 	app.background(func() {
-		data := map[string]interface{}{
-			"clientUrl": fmt.Sprint(os.Getenv("CLIENT_URL"), "/reset-password/", token.Plaintext),
-			"userID":    token.UserID,
+		s := `
+		{
+			"from":"%s",
+			"to": "%s",
+			"data":{
+				"subject":"Reset your password",
+				"userID":%d,
+				"tokenExpirationTime":"30 Minutes",
+				"clientUrl":"%s/reset-password/%s"
+				
+			},
+			"template_file":"reset_password.temp"
+			
 		}
+		`
+		jsonData := fmt.Sprintf(s,
+			app.config.vars.greenlightEmail,
+			user.Email,
+			user.ID,
+			app.config.vars.clientUrl,
+			token.Plaintext)
 
-		err = app.mailer.Send(user.Email, "reset_password.temp", data)
+		app.logger.PrintInfo(jsonData, nil)
+		err = app.pushToQueue("name", jsonData)
 		if err != nil {
 			app.logger.PrintError(err, nil)
 		}

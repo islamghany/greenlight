@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"mailer-service/mailer"
 	"net/http"
 )
@@ -26,7 +27,7 @@ func (server *Server) SendMailHandler(w http.ResponseWriter, r *http.Request) {
 		server.badRequestResponse(w, r, mailer.ErrTemplateNotFound)
 		return
 	}
-
+	fmt.Println(input.Data, input.Data["activationToken"])
 	msg := mailer.Message{
 		From:         input.From,
 		To:           input.To,
