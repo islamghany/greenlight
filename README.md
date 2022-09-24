@@ -1,4 +1,4 @@
-# Greenlight-Service
+# Greenlight
 
 Microservices application for movies.
 
