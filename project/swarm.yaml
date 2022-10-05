@@ -1,0 +1,67 @@
+version: "3"
+
+services:
+  api:
+    image: islamghany/greenlight-api
+    ports:
+      - "4000:80"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=islamghany
+      - POSTGRES_DB=greenlight  
+    entrypoint:
+      [
+        "/app/wait-for.sh",
+        "postgres:5432",
+        "--",
+        "/app/start.sh"
+      ]
+    command: [ "/app/main" ]
+
+  mail-service:
+    image: islamghany/greenlight-mail-service
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  listener-service:
+    image: islamghany/greenlight-listener
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      MAIL_DOMAIN: localhost
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_ENCRYPTION: none
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      FROM_NAME: "islam ghany"
+      FROM_ADDRESS: islam.ghany@example.com
+
+  rabbitmq:
+    image: "rabbitmq:3.10.7-alpine"
+    deploy:
+      mode: global
+      
+  mailhog:
+    image: "mailhog/mailhog:latest"
+    ports:
+      - "8025:8025"
+    deploy:
+      mode: global
+
+  postgres:
+    image: postgres:12-alpine
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=islamghany
+      - POSTGRES_DB=greenlight
+    volumes:
+      - ./db-data/postgres/:/var//lib/postgres/data    

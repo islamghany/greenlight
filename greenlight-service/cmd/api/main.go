@@ -74,7 +74,7 @@ func main() {
 	var conf config
 
 	loadEnvVars(&conf)
-	flag.IntVar(&conf.port, "port", 4000, "API Server port")
+	flag.IntVar(&conf.port, "port", 80, "API Server port")
 	flag.StringVar(&conf.env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&conf.db.dsn, "db-dsn", conf.vars.dbDSN, "data source name")
 
