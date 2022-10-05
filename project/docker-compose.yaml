@@ -21,7 +21,7 @@ services:
     networks:
       greenlight-net:
     volumes:
-      - ./db-data/postgres/:/var//lib/postgres/data
+      - ./db-data/postgres/:/var/lib/postgres/data
 
   listener-service:
     build:
@@ -57,11 +57,15 @@ services:
       - postgres
       - redis
     ports:
-      - "4000:4000"
+      - "4000:80"
     environment:
       GREENLIGHT_DB_DSN: postgresql://root:islamghany@postgres:5432/greenlight?sslmode=disable
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      GREENLIGHT_TOKEN: greenlight-token
+      GREENLIGHT_USERID_TOKEN: greenlight-userId-token
+      CLIENT_URL: http://localhost:3000
+
     entrypoint:
       [
         "/app/wait-for.sh",
