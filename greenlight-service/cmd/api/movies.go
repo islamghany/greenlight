@@ -10,12 +10,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"islamghany.greenlight/internals/data"
 	"islamghany.greenlight/internals/marshing"
 	"islamghany.greenlight/internals/validator"
 )
 
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
+
 	data := envelope{
 		"status": "available",
 		"system_info": map[string]string{
@@ -50,7 +52,6 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 	input.Filters.SortSafelist = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
 	input.Filters.ValidateFilters(v)
 
-	fmt.Println(input)
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
@@ -148,7 +149,6 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		app.badRequestResponse(w, r, errors.New("runtime must be a number"))
 		return
 	}
-	fmt.Println(r.FormValue("islam"))
 	movie := &data.Movie{
 		Title:   r.FormValue("title"),
 		Year:    int32(year),
@@ -165,70 +165,34 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	// res, err := app.cld.Upload.Upload(context.Background(), tempFile.Name(), uploader.UploadParams{
-	// 	Folder: "movies",
-	// })
 
-	// if err != nil {
-	// 	app.serverErrorResponse(w, r, err)
-	// 	return
-	// }
+	res, err := app.uploadImage(tempFile.Name(), uploader.UploadParams{
+		Folder: "movies",
+	})
 
-	//user := app.contextGetUser(r)
-	// err = app.models.Movies.Insert(movie, user.ID)
-	// if err != nil {
-	// 	app.serverErrorResponse(w, r, err)
-	// 	return
-	// }
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	movie.ImageID = res.PublicID
+	movie.ImageURL = res.SecureURL
 
-	fmt.Println(movie)
+	user := app.contextGetUser(r)
 
-	// fmt.Println("secure url: ", res.SecureURL)
-	// fmt.Println("PublicID: ", res.PublicID)
-	//app.logger.PrintInfo("res")
-	// app.cld.Upload.Uploadhttp.Error(w, err.Error(), http.StatusInternalServerError)
-	// return
-	// var input struct {
-	// 	Title   string       `json:"title"`
-	// 	Year    int32        `json:"year"`
-	// 	Runtime data.Runtime `json:"runtime"`
-	// 	Genres  []string     `json:"genres"`
-	// }
-
-	// err := app.readJSON(w, r, &input)
-	// if err != nil {
-	// 	app.badRequestResponse(w, r, err)
-	// 	return
-	// }
-
-	// // Copy the values from the input struct to a new Movie struct.
-	// movie := &data.Movie{
-	// 	Title:   input.Title,
-	// 	Year:    input.Year,
-	// 	Runtime: input.Runtime,
-	// 	Genres:  input.Genres,
-	// }
-
-	// // Initialize a new Validator.
-	// v := validator.New()
-
-	// // Call the ValidateMovie() function and return a response containing the errors if
-	// // any of the checks fail.
-	// if data.ValidateMovie(v, movie); !v.Valid() {
-	// 	app.failedValidationResponse(w, r, v.Errors)
-	// 	return
-	// }
-	// user := app.contextGetUser(r)
-	// err = app.models.Movies.Insert(movie, user.ID)
-	// if err != nil {
-	// 	app.serverErrorResponse(w, r, err)
-	// 	return
-	// }
+	err = app.models.Movies.Insert(movie, user.ID)
+	if err != nil {
+		err = app.destroyImage(movie.ImageID)
+		if err != nil {
+			app.logger.PrintError(err, nil)
+		}
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
 	headers := make(http.Header)
-	//headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
+	headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
 
-	err = app.writeJson(w, http.StatusCreated, envelope{"movie": "movie"}, headers)
+	err = app.writeJson(w, http.StatusCreated, envelope{"movie": movie}, headers)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

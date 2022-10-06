@@ -26,11 +26,16 @@ type Movie struct {
 	Likes     int64     `json:"likes,omitempty" redis:"likes,omitempty" mapstructure:"likes,omitempty"`
 	UserName  string    `json:"username,omitempty" redis:"username,omitempty" mapstructure:"username,omitempty"`
 	UserID    int64     `json:"user_id,omitempty" redis:"user_id,omitempty" mapstructure:"user_id,omitempty"`
+	ImageID   string    `json:"image_id,omitempty" redis:"image_id,omitempty" mapstructure:"image_id,omitempty"`
+	ImageURL  string    `json:"image_url,omitempty" redis:"image_url,omitempty" mapstructure:"image_url,omitempty"`
 }
 
 func ValidateMovie(v *validator.Validator, movie *Movie) {
 	v.Check(movie.Title != "", "title", "must be provided")
 	v.Check(len(movie.Title) <= 500, "title", "must not be more than 500 bytes long")
+
+	// v.Check(movie.ImageURL != "", "image_url", "must be provided")
+	// v.Check(movie.ImageID != "", "image_image_idURL", "must be provided")
 
 	v.Check(movie.Year != 0, "year", "must be provided")
 	v.Check(movie.Year >= 1888, "year", "must be greater than 1888")
@@ -53,8 +58,8 @@ type MovieModel struct {
 func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
 
 	query := fmt.Sprintf(`
-	SELECT count(*) OVER(), movie_id as id, movies.created_at  as created_at, title, year, runtime, genres, movies.version as version, views.count as view_count, users.name as username, user_id,
-		(SELECT count(*) FROM likes WHERE movies.id = likes.movie_id) as likes
+	SELECT count(*) OVER(), movie_id as id, movies.created_at  as created_at, title, year, runtime, genres, movies.version as version, views.count as view_count, users.name as username, user_id,  
+		(SELECT count(*) FROM likes WHERE movies.id = likes.movie_id) as likes, image_url
 	FROM movies
 	INNER JOIN views ON id = views.movie_id
 	INNER JOIN users ON user_id = users.id
@@ -109,12 +114,12 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 func (m MovieModel) Insert(movie *Movie, userID int64) error {
 
 	query := `
-		INSERT INTO movies (title, year, runtime, genres,user_id)
-		VALUES ($1,$2,$3,$4,$5)
+		INSERT INTO movies (title, year, runtime, genres,user_id,image_id,image_url)
+		VALUES ($1,$2,$3,$4,$5,$6,$7)
 		RETURNING id, created_at, version
 	`
 
-	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), userID}
+	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), userID, movie.ImageID, movie.ImageURL}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
@@ -146,7 +151,10 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
   movies.version as version,
   views.count as count,
   users.name as username,
-  movies.user_id
+  movies.user_id,
+  image_id,
+  image_url
+  
 FROM
   movies
   inner join views on views.movie_id = movies.id
@@ -171,6 +179,8 @@ WHERE
 		&movie.Count,
 		&movie.UserName,
 		&movie.UserID,
+		&movie.ImageID,
+		&movie.ImageURL,
 	)
 
 	if err != nil {
@@ -192,7 +202,7 @@ func (m MovieModel) Update(movie *Movie) error {
 
 	query := `
 		UPDATE movies
-		SET title = $1,  year = $2, runtime = $3, genres = $4, version = version + 1
+		SET title = $1,  year = $2, runtime = $3, genres = $4, version = version + 1, image_id=$7, image_url=$8
 		WHERE id = $5 AND version=$6
 		RETURNING version
 	`
@@ -203,6 +213,8 @@ func (m MovieModel) Update(movie *Movie) error {
 		pq.Array(movie.Genres),
 		movie.ID,
 		movie.Version,
+		movie.ImageID,
+		movie.ImageURL,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -361,7 +373,7 @@ func (m MovieModel) CacheSetMostLikes(value string) error {
 }
 func (m MovieModel) GetMostLikes() ([]*Movie, error) {
 	query := `
-	select m.id as id, created_at, title, year, runtime, genres, version, m.user_id as user_id , count(m.id) as likes_count  
+	select m.id as id, created_at, title, year, runtime, genres, version, m.user_id as user_id , count(m.id) as likes_count,  image_id, image_url
 	from movies m 
 	join likes l on l.movie_id  = m.id 
 	group by  m.id
@@ -391,6 +403,8 @@ func (m MovieModel) GetMostLikes() ([]*Movie, error) {
 			&movie.Version,
 			&movie.UserID,
 			&movie.Likes,
+			&movie.ImageID,
+			&movie.ImageURL,
 		)
 		if err != nil {
 			return nil, err
@@ -434,7 +448,9 @@ func (m *MovieModel) CacheMost20PercentageView() error {
   movies.version as version,
   views.count as count,
   users.name as username,
-  movies.user_id
+  movies.user_id,
+  image_id,
+  image_url
 FROM
   movies
   inner join views on views.movie_id = movies.id
@@ -464,6 +480,8 @@ limit $1;
 			&movie.Count,
 			&movie.UserName,
 			&movie.UserID,
+			&movie.ImageID,
+			&movie.ImageURL,
 		)
 		if err != nil {
 			return err
