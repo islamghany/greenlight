@@ -1,5 +1,6 @@
-include .envrc
+## include .envrc
 
+ include dev.env
 
 # ==================================================================================== #
 # HELPERS
@@ -25,6 +26,18 @@ confirm:
 run/api:
 	@go run ./cmd/api -db-dsn=${GREENLIGHT_DB_DSN}
 
+
+run/start-depend:
+	@echo 'Starting Postgress...'
+	docker start greenlight_db
+	@echo 'Starting Redis...'
+	docker start bank-redis
+
+run/stop-depend:
+	@echo 'Starting Postgress...'
+	docker stop greenlight_db
+	@echo 'Starting Redis...'
+	docker stop bank-redis
 ## run/dev: run the sandbox/main.go app
 run/dev:
 	@go run ./sandbox/main.go

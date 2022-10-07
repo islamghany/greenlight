@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"islamghany.greenlight/internals/event"
 	"islamghany.greenlight/internals/validator"
 
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -199,6 +201,29 @@ func (app *application) pushToQueue(name, msg string) error {
 	}
 
 	err = e.Push(msg, "mail.SEND")
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (app *application) uploadImage(name string, params uploader.UploadParams) (*uploader.UploadResult, error) {
+	resp, err := app.cld.Upload.Upload(context.Background(), name, uploader.UploadParams{
+		Folder: "movies",
+	})
+
+	if err != nil {
+
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (app *application) destroyImage(publicID string) error {
+	_, err := app.cld.Upload.Destroy(context.Background(), uploader.DestroyParams{
+		PublicID: publicID,
+	})
 
 	if err != nil {
 		return err

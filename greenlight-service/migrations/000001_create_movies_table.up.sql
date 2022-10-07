@@ -5,5 +5,7 @@ CREATE TABLE IF NOT EXISTS movies (
     year integer NOT NULL,
     runtime integer NOT NULL,
     genres text[] NOT NULL,
+    image_id text NOT NULL,
+    image_url text NOT NULL,
     version integer NOT NULL DEFAULT 1
 );

@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -62,7 +61,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	// After the user record has been created in the database, generate a new activation
 	// token for the user.
-	token, err := app.models.Tokens.New(user.ID, 3*24*time.Hour, data.ScopeActivation)
+	_, err = app.models.Tokens.New(user.ID, 3*24*time.Hour, data.ScopeActivation)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -70,36 +69,36 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	// Use the background helper to execute an anonymous function that sends the welcome
 	// email.
-	app.background(func() {
-		s := `
-		{
-			"from":"%s",
-			"to": "%s",
-			"data":{
-				"subject":"Activate your account",
-				"userID":%d,
-				"tokenExpirationTime":"3 days",
-				"activationToken":"%s/activate-account/%s"
-				
-			},
-			"template_file":"user_welcome.tmpl"
-			
-		}
-		`
-		jsonData := fmt.Sprintf(s,
-			app.config.vars.greenlightEmail,
-			user.Email,
-			user.ID,
-			app.config.vars.clientUrl,
-			token.Plaintext)
+	// app.background(func() {
+	// 	s := `
+	// 	{
+	// 		"from":"%s",
+	// 		"to": "%s",
+	// 		"data":{
+	// 			"subject":"Activate your account",
+	// 			"userID":%d,
+	// 			"tokenExpirationTime":"3 days",
+	// 			"activationToken":"%s/activate-account/%s"
 
-		err = app.pushToQueue("name", jsonData)
-		if err != nil {
-			app.logger.PrintError(err, nil)
-		}
-	})
+	// 		},
+	// 		"template_file":"user_welcome.tmpl"
 
-	app.addUserCookies(w, token)
+	// 	}
+	// 	`
+	// 	jsonData := fmt.Sprintf(s,
+	// 		app.config.vars.greenlightEmail,
+	// 		user.Email,
+	// 		user.ID,
+	// 		app.config.vars.clientUrl,
+	// 		token.Plaintext)
+
+	// 	err = app.pushToQueue("name", jsonData)
+	// 	if err != nil {
+	// 		app.logger.PrintError(err, nil)
+	// 	}
+	// })
+
+	//app.addUserCookies(w, token)
 	err = app.writeJson(w, http.StatusCreated, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
