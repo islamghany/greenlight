@@ -7,7 +7,7 @@ db/migrations/new:
 
 ## db/migrations/up: apply all up database migrations
 .PHONY: db/migrations/up
-db/migrations/up: confirm
+db/migrations/up: 
 	@echo 'Running up migrations...'
-	migrate -path ./migrations -database ${GREENLIGHT_DB_DSN} up
+	migrate -path ./db/migrations -database postgresql://root:secret@localhost:5431/logs?sslmode=disable up
 

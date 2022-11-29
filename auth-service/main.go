@@ -1,6 +1,7 @@
 package main
 
 import (
+	"auth-service/api"
 	"auth-service/utils"
 	"context"
 	"database/sql"
@@ -9,12 +10,14 @@ import (
 	"log"
 	"time"
 
-	_ "github.com/go-redis/redis/v8"
+	"auth-service/db/cache"
+	sqlc "auth-service/db/sqlc"
+
+	"github.com/go-redis/redis/v8"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
-	_ "github.com/rabbitmq/amqp091-go"
 )
 
 func main() {
@@ -47,11 +50,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// connect to the grpc
+
+	store := sqlc.New(db)
+	// 4- connect to redis caching
+	rdb, err := utils.Connect("redis", 10, 1*time.Second, func() (*redis.Client, error) {
+		return openRedis(config.REDIS_HOST, config.REDIS_PORT)
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	redisCache := cache.NewCache(rdb)
+	defer rdb.Close()
+	// 5- connect to the grpc
 
 	// start to listen on a port
-	// server := api.NewServer(db)
-	// log.Printf("Connected to server on port %s \n", conf.port)
+
+	server := api.NewServer(store, redisCache, &config)
+	log.Printf("Connected to server on port %d \n", config.PORT)
+	log.Fatal(server.Start(config.PORT))
 }
 func openDB(config *utils.Config) (*sql.DB, error) {
 	db, err := sql.Open("postgres", config.DSN)
@@ -96,28 +113,18 @@ func runMigrate(dsn, migrationPath string) error {
 	return nil
 }
 
-func Connect[T any](connectName string, counts int64, backOff time.Duration, fn func() (*T, error)) (*T, error) {
-	var connection *T
+func openRedis(host, port string) (*redis.Client, error) {
+	rdb := redis.NewClient(&redis.Options{
+		Password: "",
+		Addr:     fmt.Sprint(host, ":", port),
+		DB:       0,
+	})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	for {
-		c, err := fn()
-		if err == nil {
-			log.Println("connected to: ", connectName)
-			connection = c
-			break
-		}
-
-		log.Printf("%s not yet read", connectName)
-		counts--
-		if counts == 0 {
-			return nil, fmt.Errorf("can not connect to the %s", connectName)
-		}
-		backOff = backOff + (time.Second * 2)
-
-		log.Println("Backing off.....")
-		time.Sleep(backOff)
-		continue
-
+	err := rdb.Ping(ctx).Err()
+	if err != nil {
+		return nil, err
 	}
-	return connection, nil
+	return rdb, nil
 }

@@ -18,6 +18,7 @@ type Config struct {
 	DB_MAX_OPEN_CONNECTION int           `mapstructure:"DB_MAX_OPEN_CONNECTION"`
 	DB_MAX_IDLE_CONNECTION int           `mapstructure:"DB_MAX_IDLE_CONNECTION"`
 	DB_MAX_IDLE_TIME       string        `mapstructure:"DB_MAX_IDLE_TIME"`
+	PORT                   int           `mapstructure:"PORT"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
