@@ -1,9 +1,12 @@
 package api
 
 import (
+	"auth-service/utils"
 	"fmt"
 	"log"
 	"net/http"
+
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 func (server *Server) errorResponse(w http.ResponseWriter, r *http.Request, status int, message interface{}) {
@@ -38,4 +41,15 @@ func (server *Server) unauthorizedResponse(w http.ResponseWriter, r *http.Reques
 }
 func (serve *Server) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	serve.errorResponse(w, r, http.StatusBadRequest, err.Error())
+}
+func (server *Server) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
+	server.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
+}
+func (server *Server) validationErrorResponse(w http.ResponseWriter, r *http.Request, err error, userValidator *utils.UserValidtor) {
+	validationErrors := make(map[string]string)
+
+	for _, e := range err.(validator.ValidationErrors) {
+		validationErrors[e.Field()] = e.Translate(userValidator.Trans)
+	}
+	server.failedValidationResponse(w, r, validationErrors)
 }

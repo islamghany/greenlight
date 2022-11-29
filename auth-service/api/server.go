@@ -7,21 +7,24 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	//"gopkg.in/go-playground/validator.v9"
 )
 
 type envelope map[string]interface{}
 
 type Server struct {
-	store  *db.Queries
-	cache  *cache.Cache
-	config *utils.Config
+	store     *db.Queries
+	cache     *cache.Cache
+	config    *utils.Config
+	validator *utils.UserValidtor
 }
 
-func NewServer(s *db.Queries, c *cache.Cache, conf *utils.Config) *Server {
+func NewServer(s *db.Queries, c *cache.Cache, conf *utils.Config, v *utils.UserValidtor) *Server {
 	return &Server{
-		store:  s,
-		cache:  c,
-		config: conf,
+		store:     s,
+		cache:     c,
+		config:    conf,
+		validator: v,
 	}
 }
 

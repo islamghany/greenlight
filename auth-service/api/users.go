@@ -16,9 +16,9 @@ func IsAnonymous(u *db.User) bool {
 func (server *Server) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	var input struct {
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Name     string `json:"name" validate:"required,min=6,max=72"`
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required,min=6,max=72"`
 	}
 	err := server.readJSON(w, r, &input)
 	if err != nil {
@@ -26,6 +26,13 @@ func (server *Server) registerUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	err = server.validator.V.Struct(input)
+
+	if err != nil {
+
+		server.validationErrorResponse(w, r, err, server.validator)
+		return
+	}
 	user := db.CreateUserParams{
 		Name:      input.Name,
 		Email:     input.Email,

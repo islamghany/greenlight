@@ -22,7 +22,7 @@ import (
 
 func main() {
 
-	// 1- load the env variables
+	//  load the env variables
 	config, err := utils.LoadConfig(".")
 
 	if err != nil {
@@ -33,7 +33,14 @@ func main() {
 	flag.StringVar(&config.DB_MAX_IDLE_TIME, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
 	flag.Parse()
 
-	// 2- connect to the db
+	// initlize the user struct validator
+	v, err := utils.NewUserValidator()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//  connect to the db
 	db, err := utils.Connect("postgres", 10, 1*time.Second, func() (*sql.DB, error) {
 		return openDB(&config)
 	})
@@ -66,7 +73,7 @@ func main() {
 
 	// start to listen on a port
 
-	server := api.NewServer(store, redisCache, &config)
+	server := api.NewServer(store, redisCache, &config, v)
 	log.Printf("Connected to server on port %d \n", config.PORT)
 	log.Fatal(server.Start(config.PORT))
 }
