@@ -8,9 +8,6 @@ import (
 
 type Config struct {
 	DSN                    string        `mapstructure:"DSN"`
-	AccessTokenDuration    time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
-	RefreshTokenDuration   time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
-	TokenSymmetricKey      string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
 	REDIS_PASSWORD         string        `mapstructure:"REDIS_PASSWORD"`
 	REDIS_HOST             string        `mapstructure:"REDIS_HOST"`
 	REDIS_PORT             string        `mapstructure:"REDIS_PORT"`
@@ -19,6 +16,9 @@ type Config struct {
 	DB_MAX_IDLE_CONNECTION int           `mapstructure:"DB_MAX_IDLE_CONNECTION"`
 	DB_MAX_IDLE_TIME       string        `mapstructure:"DB_MAX_IDLE_TIME"`
 	PORT                   int           `mapstructure:"PORT"`
+	TOKEN_SYMMETRIC_KEY    string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
+	ACCESS_TOKEN_DURATION  time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	REFRESH_TOKEN_DURATION time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

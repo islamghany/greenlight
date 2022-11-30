@@ -3,6 +3,7 @@ package api
 import (
 	"auth-service/db/cache"
 	db "auth-service/db/sqlc"
+	"auth-service/token"
 	"auth-service/utils"
 	"fmt"
 	"net/http"
@@ -17,14 +18,16 @@ type Server struct {
 	cache     *cache.Cache
 	config    *utils.Config
 	validator *utils.UserValidtor
+	maker     token.Maker
 }
 
-func NewServer(s *db.Queries, c *cache.Cache, conf *utils.Config, v *utils.UserValidtor) *Server {
+func NewServer(s *db.Queries, c *cache.Cache, conf *utils.Config, v *utils.UserValidtor, maker token.Maker) *Server {
 	return &Server{
 		store:     s,
 		cache:     c,
 		config:    conf,
 		validator: v,
+		maker:     maker,
 	}
 }
 

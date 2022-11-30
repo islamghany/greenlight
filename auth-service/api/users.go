@@ -4,6 +4,7 @@ import (
 	db "auth-service/db/sqlc"
 	"auth-service/utils"
 	"context"
+	"database/sql"
 	"net/http"
 )
 
@@ -59,6 +60,32 @@ func (server *Server) registerUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	err = server.writeJson(w, http.StatusCreated, envelope{"user": u}, nil)
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+	}
+}
+
+func (server *Server) getUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	id, err := server.readIDParams(r)
+	if err != nil {
+		server.notFoundResponse(w, r)
+		return
+	}
+
+	user, err := server.store.GetUserByID(context.Background(), id)
+
+	if err != nil {
+		switch {
+		case err == sql.ErrNoRows:
+			server.invalidCredentialsResponse(w, r)
+		default:
+			server.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	user.HashedPassword = nil
+	err = server.writeJson(w, http.StatusOK, envelope{"user": user}, nil)
 	if err != nil {
 		server.serverErrorResponse(w, r, err)
 	}

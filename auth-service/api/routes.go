@@ -13,7 +13,12 @@ func (server *Server) routes() http.Handler {
 
 		w.Write([]byte("hellow worrld"))
 	})
-	router.HandlerFunc(http.MethodPost, "/api/v1/users", server.registerUserHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/accounts/users", server.registerUserHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/accounts/users/:id", server.getUserHandler)
+
+	router.HandlerFunc(http.MethodPost, "/v1/accounts/tokens/authentication", server.createAuthenticationTokenHandler)
+
+	router.HandlerFunc(http.MethodDelete, "/v1/accoutns/tokens/logout", server.logoutHandler)
 
 	return router
 }

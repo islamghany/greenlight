@@ -2,6 +2,7 @@ package main
 
 import (
 	"auth-service/api"
+	"auth-service/token"
 	"auth-service/utils"
 	"context"
 	"database/sql"
@@ -73,7 +74,12 @@ func main() {
 
 	// start to listen on a port
 
-	server := api.NewServer(store, redisCache, &config, v)
+	maker, err := token.NewPasetoMaker(config.TOKEN_SYMMETRIC_KEY[:32])
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	server := api.NewServer(store, redisCache, &config, v, maker)
 	log.Printf("Connected to server on port %d \n", config.PORT)
 	log.Fatal(server.Start(config.PORT))
 }

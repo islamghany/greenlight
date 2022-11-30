@@ -24,7 +24,10 @@ func (server *Server) serverErrorResponse(w http.ResponseWriter, r *http.Request
 	message := "the server encountered a problem and could not process your request"
 	server.errorResponse(w, r, http.StatusInternalServerError, message)
 }
-
+func (server *Server) invalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
+	message := "invalid authentication credentials"
+	server.errorResponse(w, r, http.StatusUnauthorized, message)
+}
 func (server *Server) notFoundResponse(w http.ResponseWriter, r *http.Request) {
 	message := "the requested resource could not be found"
 	server.errorResponse(w, r, http.StatusNotFound, message)
