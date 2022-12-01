@@ -2,6 +2,7 @@ package api
 
 import (
 	db "auth-service/db/sqlc"
+	"auth-service/userspb"
 	"auth-service/utils"
 	"context"
 	"database/sql"
@@ -57,6 +58,15 @@ func (server *Server) registerUserHandler(w http.ResponseWriter, r *http.Request
 		default:
 			server.serverErrorResponse(w, r, err)
 		}
+		return
+	}
+	err = server.store.AddPermissionForUser(context.Background(), db.AddPermissionForUserParams{
+		ID:   u.ID,
+		Code: userspb.PERMISSION_CODE_movies_read.String(),
+	})
+
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
 		return
 	}
 	err = server.writeJson(w, http.StatusCreated, envelope{"user": u}, nil)

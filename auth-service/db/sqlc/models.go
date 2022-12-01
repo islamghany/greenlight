@@ -10,6 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type Permission struct {
+	ID   int64  `json:"id"`
+	Code string `json:"code"`
+}
+
 type Session struct {
 	ID           uuid.UUID `json:"id"`
 	UserID       int64     `json:"user_id"`
@@ -29,4 +34,9 @@ type User struct {
 	Activated         bool      `json:"activated"`
 	PasswordChangedAt time.Time `json:"password_changed_at"`
 	Version           int32     `json:"version"`
+}
+
+type UsersPermission struct {
+	UserID       int64 `json:"user_id"`
+	PermissionID int64 `json:"permission_id"`
 }

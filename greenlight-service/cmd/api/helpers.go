@@ -11,8 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"islamghany.greenlight/internals/data"
-	"islamghany.greenlight/internals/event"
+	//"islamghany.greenlight/internals/event"
 	"islamghany.greenlight/internals/validator"
 
 	"github.com/julienschmidt/httprouter"
@@ -181,27 +180,27 @@ func (app *application) removeCookies(w http.ResponseWriter, name string) {
 	http.SetCookie(w, &cookie)
 }
 
-func (app *application) addUserCookies(w http.ResponseWriter, token *data.Token) {
-	app.addCookies(w, app.config.vars.greenlightUserTokenCookie, token.Plaintext, token.Expiry)
-	app.addCookies(w, app.config.vars.greenlightUserIDCookie, fmt.Sprint(token.UserID), token.Expiry)
-}
+// func (app *application) addUserCookies(w http.ResponseWriter, token *data.Token) {
+// 	app.addCookies(w, app.config.vars.greenlightUserTokenCookie, token.Plaintext, token.Expiry)
+// 	app.addCookies(w, app.config.vars.greenlightUserIDCookie, fmt.Sprint(token.UserID), token.Expiry)
+// }
 
-func (app *application) removeUsersCookies(w http.ResponseWriter) {
-	app.removeCookies(w, app.config.vars.greenlightUserTokenCookie)
-	app.removeCookies(w, app.config.vars.greenlightUserIDCookie)
-}
+// func (app *application) removeUsersCookies(w http.ResponseWriter) {
+// 	app.removeCookies(w, app.config.vars.greenlightUserTokenCookie)
+// 	app.removeCookies(w, app.config.vars.greenlightUserIDCookie)
+// }
 
-func (app *application) pushToQueue(name, msg string) error {
-	e, err := event.NewEventEmitter(app.amqp)
+// func (app *application) pushToQueue(name, msg string) error {
+// 	e, err := event.NewEventEmitter(app.amqp)
 
-	if err != nil {
-		return err
-	}
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = e.Push(msg, "mail.SEND")
+// 	err = e.Push(msg, "mail.SEND")
 
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }

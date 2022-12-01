@@ -15,8 +15,10 @@ import (
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"google.golang.org/grpc"
 	"islamghany.greenlight/internals/data"
 	"islamghany.greenlight/internals/jsonlog"
+	"islamghany.greenlight/userspb"
 )
 
 // version of the application
@@ -67,14 +69,15 @@ type application struct {
 	logger *jsonlog.Logger
 	models data.Models
 	wg     sync.WaitGroup
-	amqp   *amqp.Connection
+	//amqp   *amqp.Connection
+	userClient userspb.UserServiceClient
 }
 
 func main() {
 	var conf config
 
 	loadEnvVars(&conf)
-	flag.IntVar(&conf.port, "port", 80, "API Server port")
+	flag.IntVar(&conf.port, "port", 8080, "API Server port")
 	flag.StringVar(&conf.env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&conf.db.dsn, "db-dsn", conf.vars.dbDSN, "data source name")
 
@@ -126,13 +129,13 @@ func main() {
 
 	logger.PrintInfo("database connection pool established", nil)
 
-	rabbitConn, err := connectAMQP(10, 1*time.Second)
+	// rabbitConn, err := connectAMQP(10, 1*time.Second)
 
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rabbitConn.Close()
-	logger.PrintInfo("rabbitmq connection established", nil)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer rabbitConn.Close()
+	// logger.PrintInfo("rabbitmq connection established", nil)
 
 	expvar.NewString("version").Set(version)
 
@@ -151,12 +154,24 @@ func main() {
 		return time.Now().Unix()
 	}))
 
+	// connect to the auth servie via grpc
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	if err != nil {
+		logger.PrintFatal(err, nil)
+	}
+
+	defer conn.Close()
+
+	u := userspb.NewUserServiceClient(conn)
+
 	app := &application{
 		config: conf,
 		logger: logger,
 		models: data.NewModels(db, rdb),
-		amqp:   rabbitConn,
+		//amqp:   rabbitConn,
+		userClient: u,
 	}
+
 	err = app.serve()
 	if err != nil {
 		logger.PrintFatal(err, nil)

@@ -92,20 +92,20 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	user := app.contextGetUser(r)
-	err = app.models.Movies.Insert(movie, user.ID)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
+	// //user := app.contextGetUser(r)
+	// err = app.models.Movies.Insert(movie, user.ID)
+	// if err != nil {
+	// 	app.serverErrorResponse(w, r, err)
+	// 	return
+	// }
 
-	headers := make(http.Header)
-	headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
+	// headers := make(http.Header)
+	// headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
 
-	err = app.writeJson(w, http.StatusCreated, envelope{"movie": movie}, headers)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
+	// err = app.writeJson(w, http.StatusCreated, envelope{"movie": movie}, headers)
+	// if err != nil {
+	// 	app.serverErrorResponse(w, r, err)
+	// }
 }
 func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)

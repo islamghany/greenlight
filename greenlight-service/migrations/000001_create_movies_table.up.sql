@@ -5,5 +5,7 @@ CREATE TABLE IF NOT EXISTS movies (
     year integer NOT NULL,
     runtime integer NOT NULL,
     genres text[] NOT NULL,
-    version integer NOT NULL DEFAULT 1
+    version integer NOT NULL DEFAULT 1,
+    user_id bigserial NOT NULL,
+    username text NOT NULL
 );

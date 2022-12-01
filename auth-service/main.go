@@ -70,9 +70,6 @@ func main() {
 	}
 	redisCache := cache.NewCache(rdb)
 	defer rdb.Close()
-	// 5- connect to the grpc
-
-	// start to listen on a port
 
 	maker, err := token.NewPasetoMaker(config.TOKEN_SYMMETRIC_KEY[:32])
 
@@ -80,8 +77,16 @@ func main() {
 		log.Fatal(err)
 	}
 	server := api.NewServer(store, redisCache, &config, v, maker)
+
 	log.Printf("Connected to server on port %d \n", config.PORT)
-	log.Fatal(server.Start(config.PORT))
+	go server.Start(config.PORT)
+
+	log.Println("GRPC IS UP")
+	err = server.OpenGRPC(50051)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 func openDB(config *utils.Config) (*sql.DB, error) {
 	db, err := sql.Open("postgres", config.DSN)

@@ -4,8 +4,10 @@ import (
 	"auth-service/db/cache"
 	db "auth-service/db/sqlc"
 	"auth-service/token"
+	"auth-service/userspb"
 	"auth-service/utils"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 	//"gopkg.in/go-playground/validator.v9"
@@ -19,6 +21,7 @@ type Server struct {
 	config    *utils.Config
 	validator *utils.UserValidtor
 	maker     token.Maker
+	userspb.UnimplementedUserServiceServer
 }
 
 func NewServer(s *db.Queries, c *cache.Cache, conf *utils.Config, v *utils.UserValidtor, maker token.Maker) *Server {
@@ -31,7 +34,7 @@ func NewServer(s *db.Queries, c *cache.Cache, conf *utils.Config, v *utils.UserV
 	}
 }
 
-func (server *Server) Start(port int) error {
+func (server *Server) Start(port int) {
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", port),
 		Handler:      server.routes(),
@@ -40,5 +43,5 @@ func (server *Server) Start(port int) error {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	return srv.ListenAndServe()
+	log.Fatal(srv.ListenAndServe())
 }
