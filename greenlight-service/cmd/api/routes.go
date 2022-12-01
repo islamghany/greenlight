@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"islamghany.greenlight/userspb"
 )
 
 type MailPayload struct {
@@ -49,16 +50,16 @@ func (app *application) routes() http.Handler {
 
 	})
 	router.HandlerFunc(http.MethodGet, "/v1/movies", app.listMoviesHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovieHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.authenticate(app.showMovieHandler))
-	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateMovieHandler)
-	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/movies", app.authenticate(app.requirePermission(userspb.PERMISSION_CODE_movies_write.String(), app.createMovieHandler)))
+	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.authenticate(app.requirePermission(userspb.PERMISSION_CODE_movies_write.String(), app.showMovieHandler)))
+	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.authenticate(app.requirePermission(userspb.PERMISSION_CODE_movies_write.String(), app.updateMovieHandler)))
+	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.authenticate(app.requirePermission(userspb.PERMISSION_CODE_movies_write.String(), app.deleteMovieHandler)))
 	router.HandlerFunc(http.MethodGet, "/v1/most-movies/likes", app.GetMostLikedMovivesHandler)
 	router.HandlerFunc(http.MethodGet, "/v1/most-movies/views", app.GetMostViewsMovivesHandler)
 
 	router.HandlerFunc(http.MethodGet, "/v1/likes/:id", app.getMoiveLikeHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/likes", app.addLikeHandler)
-	router.HandlerFunc(http.MethodDelete, "/v1/likes/:id", app.deleteLikeHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/likes", app.authenticate(app.requirePermission(userspb.PERMISSION_CODE_movies_write.String(), app.addLikeHandler)))
+	router.HandlerFunc(http.MethodDelete, "/v1/likes/:id", app.authenticate(app.requirePermission(userspb.PERMISSION_CODE_movies_write.String(), app.deleteLikeHandler)))
 
 	router.Handler(http.MethodGet, "/debug/vars", expvar.Handler())
 

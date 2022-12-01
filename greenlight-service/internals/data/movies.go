@@ -53,11 +53,16 @@ type MovieModel struct {
 func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
 
 	query := fmt.Sprintf(`
-	SELECT count(*) OVER(), movie_id as id, movies.created_at  as created_at, title, year, runtime, genres, movies.version as version, views.count as view_count, users.name as username, user_id,
+	SELECT count(*) OVER(), 
+	       movies.id as id, movies.created_at  as created_at,
+		   title, year, 
+		   runtime, genres, 
+		   movies.version as version, 
+		   views.count as view_count,
+		   username, user_id,
 		(SELECT count(*) FROM likes WHERE movies.id = likes.movie_id) as likes
 	FROM movies
 	INNER JOIN views ON id = views.movie_id
-	INNER JOIN users ON user_id = users.id
 	WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '') 
 	AND (genres @> $2 OR $2 = '{}')     
 	ORDER BY %s %s, id ASC
@@ -106,15 +111,15 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
 	return movies, metadata, nil
 }
-func (m MovieModel) Insert(movie *Movie, userID int64) error {
+func (m MovieModel) Insert(movie *Movie, userID int64, username string) error {
 
 	query := `
-		INSERT INTO movies (title, year, runtime, genres,user_id)
-		VALUES ($1,$2,$3,$4,$5)
+		INSERT INTO movies (title, year, runtime, genres,user_id,username)
+		VALUES ($1,$2,$3,$4,$5,$6)
 		RETURNING id, created_at, version
 	`
 
-	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), userID}
+	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), userID, username}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
@@ -145,12 +150,11 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
   genres,
   movies.version as version,
   views.count as count,
-  users.name as username,
-  movies.user_id
+  username,
+  user_id
 FROM
   movies
   inner join views on views.movie_id = movies.id
-  inner join users on users.id = user_id
 WHERE
   movies.id = $1;
 	`
@@ -399,12 +403,11 @@ func (m *MovieModel) CacheMost20PercentageView() error {
   genres,
   movies.version as version,
   views.count as count,
-  users.name as username,
+  username,
   movies.user_id
 FROM
   movies
   inner join views on views.movie_id = movies.id
-  inner join users on users.id = user_id
   order by views.count Desc
 limit $1;
 	`

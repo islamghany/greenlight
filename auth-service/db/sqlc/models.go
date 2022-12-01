@@ -34,6 +34,7 @@ type User struct {
 	Activated         bool      `json:"activated"`
 	PasswordChangedAt time.Time `json:"password_changed_at"`
 	Version           int32     `json:"version"`
+	Username          string    `json:"username"`
 }
 
 type UsersPermission struct {

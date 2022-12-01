@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
 	//"islamghany.greenlight/internals/event"
 	"islamghany.greenlight/internals/validator"
@@ -159,25 +158,13 @@ func (app *application) background(fn func()) {
 	}()
 }
 
-func (app *application) addCookies(w http.ResponseWriter, name, value string, ttl time.Time) {
-	cookie := http.Cookie{
-		Name:     name,
-		Value:    value,
-		Expires:  ttl,
-		Secure:   true,
-		Path:     "/",
-		HttpOnly: true,
+func (app *application) contains(elems []string, v string) bool {
+	for _, s := range elems {
+		if v == s {
+			return true
+		}
 	}
-	http.SetCookie(w, &cookie)
-}
-func (app *application) removeCookies(w http.ResponseWriter, name string) {
-	cookie := http.Cookie{
-		Name:    name,
-		Value:   "",
-		Path:    "/",
-		Expires: time.Unix(0, 0),
-	}
-	http.SetCookie(w, &cookie)
+	return false
 }
 
 // func (app *application) addUserCookies(w http.ResponseWriter, token *data.Token) {

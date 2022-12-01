@@ -14,16 +14,18 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
   name,
+  username,
   hashed_password,
   email,
   activated
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3, $4, $5
 ) RETURNING id, created_at, version
 `
 
 type CreateUserParams struct {
 	Name           string `json:"name"`
+	Username       string `json:"username"`
 	HashedPassword []byte `json:"hashed_password"`
 	Email          string `json:"email"`
 	Activated      bool   `json:"activated"`
@@ -38,6 +40,7 @@ type CreateUserRow struct {
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
 		arg.Name,
+		arg.Username,
 		arg.HashedPassword,
 		arg.Email,
 		arg.Activated,
@@ -48,7 +51,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, created_at, name, email, hashed_password, activated, password_changed_at, version
+SELECT id, created_at, name, email, hashed_password, activated, password_changed_at, version, username
 FROM users
 WHERE email = $1
 LIMIT 1
@@ -66,12 +69,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Activated,
 		&i.PasswordChangedAt,
 		&i.Version,
+		&i.Username,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, created_at, name, email, hashed_password, activated, password_changed_at, version
+SELECT id, created_at, name, email, hashed_password, activated, password_changed_at, version, username
 FROM users
 WHERE id = $1
 LIMIT 1
@@ -89,6 +93,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
 		&i.Activated,
 		&i.PasswordChangedAt,
 		&i.Version,
+		&i.Username,
 	)
 	return i, err
 }
@@ -104,7 +109,7 @@ SET
 WHERE
   id = $5 AND
   version = $6
-RETURNING id, created_at, name, email, hashed_password, activated, password_changed_at, version
+RETURNING id, created_at, name, email, hashed_password, activated, password_changed_at, version, username
 `
 
 type UpdateUserParams struct {
@@ -135,6 +140,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Activated,
 		&i.PasswordChangedAt,
 		&i.Version,
+		&i.Username,
 	)
 	return i, err
 }

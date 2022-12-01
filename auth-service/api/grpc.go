@@ -51,7 +51,7 @@ func (server *Server) Authenticate(ctx context.Context, req *userspb.Authenticat
 	return &userspb.AuthenticateResponse{
 		User: &userspb.User{
 			Id:        user.ID,
-			Username:  user.Name,
+			Username:  user.Username,
 			Email:     user.Email,
 			Name:      user.Name,
 			Activated: user.Activated,
@@ -76,7 +76,7 @@ func (server *Server) GetUser(ctx context.Context, req *userspb.AuthenticateRequ
 
 	return &userspb.User{
 		Id:        user.ID,
-		Username:  user.Name,
+		Username:  user.Username,
 		Email:     user.Email,
 		Name:      user.Name,
 		Activated: user.Activated,

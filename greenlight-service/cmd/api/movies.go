@@ -92,20 +92,22 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	// //user := app.contextGetUser(r)
-	// err = app.models.Movies.Insert(movie, user.ID)
-	// if err != nil {
-	// 	app.serverErrorResponse(w, r, err)
-	// 	return
-	// }
+	payload := app.contextGetUser(r)
+	err = app.models.Movies.Insert(movie, payload.User.Id, payload.User.Username)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
-	// headers := make(http.Header)
-	// headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
+	headers := make(http.Header)
+	headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
 
-	// err = app.writeJson(w, http.StatusCreated, envelope{"movie": movie}, headers)
-	// if err != nil {
-	// 	app.serverErrorResponse(w, r, err)
-	// }
+	movie.UserName = payload.User.Username
+	movie.UserID = payload.User.Id
+	err = app.writeJson(w, http.StatusCreated, envelope{"movie": movie}, headers)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
@@ -215,6 +217,22 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	movie, err := app.models.Movies.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	payload := app.contextGetUser(r)
+
+	if payload.User.Id != movie.UserID {
+		app.notPermittedResponse(w, r)
+		return
+	}
 	err = app.models.Movies.Delete(id)
 	if err != nil {
 		switch {

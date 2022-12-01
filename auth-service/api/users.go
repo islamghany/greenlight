@@ -21,6 +21,7 @@ func (server *Server) registerUserHandler(w http.ResponseWriter, r *http.Request
 		Name     string `json:"name" validate:"required,min=6,max=72"`
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required,min=6,max=72"`
+		Username string `json:"username" validate:"required,min=6,max=72"`
 	}
 	err := server.readJSON(w, r, &input)
 	if err != nil {
@@ -39,6 +40,7 @@ func (server *Server) registerUserHandler(w http.ResponseWriter, r *http.Request
 		Name:      input.Name,
 		Email:     input.Email,
 		Activated: false,
+		Username:  input.Username,
 	}
 
 	hash, err := utils.HashPassword(input.Password)
@@ -55,6 +57,8 @@ func (server *Server) registerUserHandler(w http.ResponseWriter, r *http.Request
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
 			server.errorResponse(w, r, http.StatusUnprocessableEntity, "this email is alreay exists")
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
+			server.errorResponse(w, r, http.StatusUnprocessableEntity, "this username is alreay exists")
 		default:
 			server.serverErrorResponse(w, r, err)
 		}
