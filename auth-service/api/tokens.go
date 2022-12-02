@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+	"time"
 
 	"github.com/tomasen/realip"
 )
@@ -82,6 +83,71 @@ func (server *Server) createAuthenticationTokenHandler(w http.ResponseWriter, r 
 		"session_id":               session.ID,
 		"access_token_expires_at":  accessPayload.ExpiredAt,
 		"refresh_token_expires_at": refreshPayload.ExpiredAt,
+	}, nil)
+
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (server *Server) renewAccessTokenHandler(w http.ResponseWriter, r *http.Request) {
+
+	cookie, err := r.Cookie("refresh_token")
+
+	if err != nil || cookie.Value == "" {
+		server.authenticationRequiredResponse(w, r)
+		return
+	}
+
+	payload, err := server.maker.VerifyToken(cookie.Value)
+
+	if err != nil {
+		server.invalidAuthenticationTokenResponse(w, r)
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	session, err := server.store.GetSession(ctx, payload.ID)
+
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+		return
+	}
+
+	isAborted := false
+
+	if session.RefreshToken != cookie.Value {
+		server.removeUserCookies(w)
+		isAborted = true
+		server.invalidAuthenticationTokenResponse(w, r)
+	}
+
+	if !isAborted && time.Now().After(session.ExpiresAt) {
+		server.removeUserCookies(w)
+		isAborted = true
+		server.invalidAuthenticationTokenResponse(w, r)
+	}
+
+	if isAborted {
+		server.background(func() {
+			server.store.DeleteAllSessionForUser(context.Background(), session.UserID)
+		})
+		return
+	}
+
+	accessToken, accessPayload, err := server.maker.CreateToken(session.UserID, server.config.ACCESS_TOKEN_DURATION)
+
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+		return
+	}
+
+	server.setAccessTokenCookie(w, accessToken, accessPayload.ExpiredAt)
+
+	err = server.writeJson(w, http.StatusCreated, envelope{
+		"access_token_expires_at": accessPayload.ExpiredAt,
 	}, nil)
 
 	if err != nil {

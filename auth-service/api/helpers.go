@@ -98,7 +98,19 @@ func (server *Server) readJSON(w http.ResponseWriter, r *http.Request, dest inte
 	return nil
 }
 
-func (server *Server) setCooke(w http.ResponseWriter, name, value, path string, ttl time.Time) {
+func (app *Server) background(fn func()) {
+	go func() {
+
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Println(err)
+			}
+		}()
+		fn()
+	}()
+}
+
+func (server *Server) setCookie(w http.ResponseWriter, name, value, path string, ttl time.Time) {
 
 	cookie := &http.Cookie{
 		Name:     name,
@@ -110,6 +122,10 @@ func (server *Server) setCooke(w http.ResponseWriter, name, value, path string, 
 	}
 
 	http.SetCookie(w, cookie)
+}
+
+func (server *Server) setAccessTokenCookie(w http.ResponseWriter, accessToken string, accessTokenExpiry time.Time) {
+	server.setCookie(w, "access_token", accessToken, "/", accessTokenExpiry)
 }
 
 func (server *Server) removeCookie(w http.ResponseWriter, name, path string) {
@@ -127,8 +143,8 @@ func (server *Server) addUserCookies(w http.ResponseWriter,
 	accessTokenExpiry,
 	refreshTokenExpiry time.Time,
 ) {
-	server.setCooke(w, "access_token", accessToken, "/", accessTokenExpiry)
-	server.setCooke(
+	server.setAccessTokenCookie(w, accessToken, accessTokenExpiry)
+	server.setCookie(
 		w,
 		"refresh_token",
 		refreshToken,
