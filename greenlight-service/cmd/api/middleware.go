@@ -5,7 +5,6 @@ import (
 	"expvar"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -131,7 +130,7 @@ func (app *application) rateLimiter(next http.Handler) http.Handler {
 func (app *application) authenticate(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//user := app.contextGetUser(r)
-		cookie, err := r.Cookie(os.Getenv("access_token"))
+		cookie, err := r.Cookie("access_token")
 
 		if err != nil {
 			app.authenticationRequiredResponse(w, r)

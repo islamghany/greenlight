@@ -75,13 +75,7 @@ func (server *Server) createAuthenticationTokenHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	server.setCooke(w, "access_token", accessToken, "/", accessPayload.ExpiredAt)
-	server.setCooke(
-		w,
-		"refresh_token",
-		refreshToken,
-		"/v1/accouts/tokens/renew-access-token",
-		refreshPayload.ExpiredAt)
+	server.addUserCookies(w, accessToken, refreshToken, accessPayload.ExpiredAt, refreshPayload.ExpiredAt)
 
 	err = server.writeJson(w, http.StatusCreated, envelope{
 		"user":                     user,
@@ -94,8 +88,4 @@ func (server *Server) createAuthenticationTokenHandler(w http.ResponseWriter, r 
 		server.serverErrorResponse(w, r, err)
 		return
 	}
-}
-
-func (server *Server) logoutHandler(w http.ResponseWriter, r *http.Request) {
-
 }

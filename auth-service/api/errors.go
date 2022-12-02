@@ -56,3 +56,14 @@ func (server *Server) validationErrorResponse(w http.ResponseWriter, r *http.Req
 	}
 	server.failedValidationResponse(w, r, validationErrors)
 }
+
+func (server *Server) authenticationRequiredResponse(w http.ResponseWriter, r *http.Request) {
+	message := "you must be authenticated to access this resource"
+	server.errorResponse(w, r, http.StatusUnauthorized, message)
+}
+func (server *Server) invalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("WWW-Authenticate", "Bearer")
+
+	message := "invalid or missing authentication token"
+	server.errorResponse(w, r, http.StatusUnauthorized, message)
+}

@@ -13,6 +13,7 @@ import (
 type Querier interface {
 	AddPermissionForUser(ctx context.Context, arg AddPermissionForUserParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
+	DeleteAllSessionForUser(ctx context.Context, userID int64) error
 	DeleteSession(ctx context.Context, id uuid.UUID) error
 	GetAllPermissionsForUser(ctx context.Context, id int64) ([]string, error)
 	GetSession(ctx context.Context, id uuid.UUID) (Session, error)

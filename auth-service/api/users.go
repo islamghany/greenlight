@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+	"time"
 )
 
 var AnonymousUser = &db.User{}
@@ -100,6 +101,29 @@ func (server *Server) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	user.HashedPassword = nil
 	err = server.writeJson(w, http.StatusOK, envelope{"user": user}, nil)
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+	}
+}
+
+func (server *Server) logoutHandler(w http.ResponseWriter, r *http.Request) {
+
+	// user must be authenticated to get into this handler.
+
+	user := server.contextGetUser(r)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := server.store.DeleteAllSessionForUser(ctx, user.ID)
+
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+		return
+	}
+
+	server.removeUserCookies(w)
+
+	err = server.writeJson(w, http.StatusOK, envelope{"message": "signed out successfully."}, nil)
 	if err != nil {
 		server.serverErrorResponse(w, r, err)
 	}

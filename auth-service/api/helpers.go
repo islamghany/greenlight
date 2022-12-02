@@ -112,12 +112,31 @@ func (server *Server) setCooke(w http.ResponseWriter, name, value, path string, 
 	http.SetCookie(w, cookie)
 }
 
-func (server *Server) removeCookie(w http.ResponseWriter, name string) {
+func (server *Server) removeCookie(w http.ResponseWriter, name, path string) {
 	cookie := http.Cookie{
 		Name:    name,
 		Value:   "",
-		Path:    "/",
+		Path:    path,
 		Expires: time.Unix(0, 0),
 	}
 	http.SetCookie(w, &cookie)
+}
+func (server *Server) addUserCookies(w http.ResponseWriter,
+	accessToken,
+	refreshToken string,
+	accessTokenExpiry,
+	refreshTokenExpiry time.Time,
+) {
+	server.setCooke(w, "access_token", accessToken, "/", accessTokenExpiry)
+	server.setCooke(
+		w,
+		"refresh_token",
+		refreshToken,
+		"/v1/accouts/tokens/renew-access-token",
+		refreshTokenExpiry)
+
+}
+func (server *Server) removeUserCookies(w http.ResponseWriter) {
+	server.removeCookie(w, "access_token", "/")
+	server.removeCookie(w, "refresh_token", "/v1/accouts/tokens/renew-access-token")
 }

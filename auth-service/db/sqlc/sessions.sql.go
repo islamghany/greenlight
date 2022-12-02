@@ -12,6 +12,16 @@ import (
 	"github.com/google/uuid"
 )
 
+const deleteAllSessionForUser = `-- name: DeleteAllSessionForUser :exec
+delete from sessions
+where user_id = $1
+`
+
+func (q *Queries) DeleteAllSessionForUser(ctx context.Context, userID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteAllSessionForUser, userID)
+	return err
+}
+
 const deleteSession = `-- name: DeleteSession :exec
 delete from sessions
 where id = $1
