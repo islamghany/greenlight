@@ -60,7 +60,7 @@ func main() {
 	}
 
 	store := sqlc.New(db)
-	// 4- connect to redis caching
+	// connect to redis caching
 	rdb, err := utils.Connect("redis", 10, 1*time.Second, func() (*redis.Client, error) {
 		return openRedis(config.REDIS_HOST, config.REDIS_PORT)
 	})
