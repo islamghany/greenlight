@@ -88,12 +88,12 @@ func (server *Server) getUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := server.store.GetUserByID(context.Background(), id)
+	user, err := server.getReadyUser(id)
 
 	if err != nil {
 		switch {
 		case err == sql.ErrNoRows:
-			server.invalidCredentialsResponse(w, r)
+			server.notFoundResponse(w, r)
 		default:
 			server.serverErrorResponse(w, r, err)
 		}

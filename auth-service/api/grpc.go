@@ -36,7 +36,7 @@ func (server *Server) Authenticate(ctx context.Context, req *userspb.Authenticat
 		return nil, err
 	}
 
-	user, err := server.store.GetUserByID(ctx, payload.UserID)
+	user, err := server.getReadyUser(payload.UserID)
 
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (server *Server) GetUser(ctx context.Context, req *userspb.AuthenticateRequ
 	if err != nil {
 		return nil, err
 	}
-	user, err := server.store.GetUserByID(ctx, payload.UserID)
+	user, err := server.getReadyUser(payload.UserID)
 
 	if err != nil {
 		return nil, err
