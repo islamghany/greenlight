@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package userspb;
+
+option go_package="/userspb";
+
+enum PERMISSION_CODE{
+    movies_read = 0;
+    movies_write = 1;
+ }
+
+message User {
+    int64 id = 1;
+    string username = 2;
+    string email = 3;
+    string name = 4;
+    bool activated = 5;
+}
+
+message Permission {
+    int64 user_id = 1;
+    PERMISSION_CODE code =2;
+}
+
+
+message AuthenticateRequst {
+    string access_token = 1;
+}
+
+message AuthenticateResponse{
+    User user = 1;
+    repeated string permissions =2;
+}
+
+service UserService {
+    rpc Authenticate(AuthenticateRequst) returns (AuthenticateResponse);
+    rpc GetUser(AuthenticateRequst) returns (User);
+}
+
+
+

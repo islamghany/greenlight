@@ -11,6 +11,9 @@
     },
     {
       "path": "listener-service"
+    },
+    {
+      "path": "auth-service"
     }
   ]
 }
