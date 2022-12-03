@@ -51,15 +51,12 @@ type config struct {
 		password string
 	}
 	vars struct {
-		dbDSN                     string
-		emailPassword             string
-		greenlightUserTokenCookie string
-		greenlightUserIDCookie    string
-		redisHost                 string
-		redisPort                 string
-		redisPassword             string
-		clientUrl                 string
-		greenlightEmail           string
+		dbDSN string
+
+		redisHost     string
+		redisPort     string
+		redisPassword string
+		clientUrl     string
 	}
 }
 
@@ -240,9 +237,6 @@ func openRedis(host, port, username, password string) (*redis.Client, error) {
 
 func loadEnvVars(conf *config) {
 	conf.vars.dbDSN = os.Getenv("GREENLIGHT_DB_DSN")
-	conf.vars.greenlightUserTokenCookie = os.Getenv("GREENLIGHT_TOKEN")
-	conf.vars.greenlightUserIDCookie = os.Getenv("GREENLIGHT_USERID_TOKEN")
-	conf.vars.emailPassword = os.Getenv("EMAIL_PASSWORD")
 	conf.vars.clientUrl = os.Getenv("CLIENT_URL")
 	if conf.vars.clientUrl == "" {
 		conf.vars.clientUrl = "http://localhost:3000"
@@ -252,10 +246,7 @@ func loadEnvVars(conf *config) {
 		conf.vars.redisHost = "localhost"
 	}
 	conf.vars.redisPort = os.Getenv("REDIS_PORT")
-	conf.vars.greenlightEmail = os.Getenv("GREENLIGHT_EMAIL")
-	if conf.vars.greenlightEmail == "" {
-		conf.vars.greenlightEmail = "no_replay@greenlight.com"
-	}
+
 	conf.vars.redisPassword = os.Getenv("REDIS_PASSWORD")
 }
 
