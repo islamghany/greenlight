@@ -1,4 +1,5 @@
-
+include app.env
+export
 
 .PHONY: db/migrations/new
 db/migrations/new:
@@ -24,3 +25,8 @@ proto/generate:
 	protoc --go_out=. --go_opt=paths=source_relative \
   	--go-grpc_out=. --go-grpc_opt=paths=source_relative \
  	userspb/user.proto
+
+
+build:
+	@echo 'Building the auth service'
+	env GOOS=linux CGO_ENABLED=0 go build -o authService
