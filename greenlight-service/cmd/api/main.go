@@ -129,7 +129,7 @@ func main() {
 
 	logger.PrintInfo("database connection pool established", nil)
 
-	// // rabbitConn, err := connectAMQP(10, 1*time.Second)
+	// rabbitConn, err := connectAMQP(10, 1*time.Second)
 
 	// if err != nil {
 	// 	log.Fatal(err)

@@ -1,22 +1,6 @@
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/cloudinary/cloudinary-go/v2 v2.2.0
-## explicit; go 1.15
-github.com/cloudinary/cloudinary-go/v2
-github.com/cloudinary/cloudinary-go/v2/api
-github.com/cloudinary/cloudinary-go/v2/api/admin
-github.com/cloudinary/cloudinary-go/v2/api/admin/metadata
-github.com/cloudinary/cloudinary-go/v2/api/admin/search
-github.com/cloudinary/cloudinary-go/v2/api/uploader
-github.com/cloudinary/cloudinary-go/v2/asset
-github.com/cloudinary/cloudinary-go/v2/config
-github.com/cloudinary/cloudinary-go/v2/internal/signature
-github.com/cloudinary/cloudinary-go/v2/logger
-github.com/cloudinary/cloudinary-go/v2/transformation
-# github.com/creasty/defaults v1.6.0
-## explicit; go 1.14
-github.com/creasty/defaults
 # github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f
 ## explicit
 github.com/dgryski/go-rendezvous

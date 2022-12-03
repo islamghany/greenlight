@@ -26,16 +26,11 @@ type Movie struct {
 	Likes     int64     `json:"likes,omitempty" redis:"likes,omitempty" mapstructure:"likes,omitempty"`
 	UserName  string    `json:"username,omitempty" redis:"username,omitempty" mapstructure:"username,omitempty"`
 	UserID    int64     `json:"user_id,omitempty" redis:"user_id,omitempty" mapstructure:"user_id,omitempty"`
-	ImageID   string    `json:"image_id,omitempty" redis:"image_id,omitempty" mapstructure:"image_id,omitempty"`
-	ImageURL  string    `json:"image_url,omitempty" redis:"image_url,omitempty" mapstructure:"image_url,omitempty"`
 }
 
 func ValidateMovie(v *validator.Validator, movie *Movie) {
 	v.Check(movie.Title != "", "title", "must be provided")
 	v.Check(len(movie.Title) <= 500, "title", "must not be more than 500 bytes long")
-
-	// v.Check(movie.ImageURL != "", "image_url", "must be provided")
-	// v.Check(movie.ImageID != "", "image_image_idURL", "must be provided")
 
 	v.Check(movie.Year != 0, "year", "must be provided")
 	v.Check(movie.Year >= 1888, "year", "must be greater than 1888")
@@ -180,8 +175,6 @@ WHERE
 		&movie.Count,
 		&movie.UserName,
 		&movie.UserID,
-		&movie.ImageID,
-		&movie.ImageURL,
 	)
 
 	if err != nil {
@@ -203,7 +196,7 @@ func (m MovieModel) Update(movie *Movie) error {
 
 	query := `
 		UPDATE movies
-		SET title = $1,  year = $2, runtime = $3, genres = $4, version = version + 1, image_id=$7, image_url=$8
+		SET title = $1,  year = $2, runtime = $3, genres = $4, version = version + 1
 		WHERE id = $5 AND version=$6
 		RETURNING version
 	`
@@ -214,8 +207,6 @@ func (m MovieModel) Update(movie *Movie) error {
 		pq.Array(movie.Genres),
 		movie.ID,
 		movie.Version,
-		movie.ImageID,
-		movie.ImageURL,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -340,7 +331,7 @@ func (m MovieModel) CacheSetMostLikes(value string) error {
 }
 func (m MovieModel) GetMostLikes() ([]*Movie, error) {
 	query := `
-	select m.id as id, created_at, title, year, runtime, genres, version, m.user_id as user_id , count(m.id) as likes_count,  image_id, image_url
+	select m.id as id, created_at, title, year, runtime, genres, version, m.user_id as user_id , count(m.id) as likes_count  
 	from movies m 
 	join likes l on l.movie_id  = m.id 
 	group by  m.id
@@ -370,8 +361,6 @@ func (m MovieModel) GetMostLikes() ([]*Movie, error) {
 			&movie.Version,
 			&movie.UserID,
 			&movie.Likes,
-			&movie.ImageID,
-			&movie.ImageURL,
 		)
 		if err != nil {
 			return nil, err
@@ -444,8 +433,6 @@ limit $1;
 			&movie.Count,
 			&movie.UserName,
 			&movie.UserID,
-			&movie.ImageID,
-			&movie.ImageURL,
 		)
 		if err != nil {
 			return err
