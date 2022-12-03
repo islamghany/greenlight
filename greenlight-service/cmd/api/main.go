@@ -6,7 +6,6 @@ import (
 	"expvar"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"runtime"
 	"sync"
@@ -14,7 +13,6 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
-	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc"
 	"islamghany.greenlight/internals/data"
 	"islamghany.greenlight/internals/jsonlog"
@@ -30,7 +28,7 @@ var buildTime string
 
 // config
 type config struct {
-	port int    // port number e.g. 8080
+	port string // port number e.g. 8080
 	env  string // development ot prodction
 	db   struct {
 		dsn          string
@@ -74,7 +72,8 @@ func main() {
 	var conf config
 
 	loadEnvVars(&conf)
-	flag.IntVar(&conf.port, "port", 8080, "API Server port")
+
+	flag.StringVar(&conf.port, "port", os.Getenv("PORT"), "API Server port")
 	flag.StringVar(&conf.env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&conf.db.dsn, "db-dsn", conf.vars.dbDSN, "data source name")
 
@@ -152,7 +151,7 @@ func main() {
 	}))
 
 	// connect to the auth servie via grpc
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial("auth-service:50051", grpc.WithInsecure())
 	if err != nil {
 		logger.PrintFatal(err, nil)
 	}
@@ -250,28 +249,28 @@ func loadEnvVars(conf *config) {
 	conf.vars.redisPassword = os.Getenv("REDIS_PASSWORD")
 }
 
-func connectAMQP(counts int64, backOff time.Duration) (*amqp.Connection, error) {
-	var connection *amqp.Connection
+// func connectAMQP(counts int64, backOff time.Duration) (*amqp.Connection, error) {
+// 	var connection *amqp.Connection
 
-	for {
-		c, err := amqp.Dial("amqp://guest:guest@rabbitmq")
-		if err == nil {
-			log.Println("connected to RabbitMQ")
-			connection = c
-			break
-		}
+// 	for {
+// 		c, err := amqp.Dial("amqp://guest:guest@rabbitmq")
+// 		if err == nil {
+// 			log.Println("connected to RabbitMQ")
+// 			connection = c
+// 			break
+// 		}
 
-		fmt.Println("RabbitMQ not yet read")
-		counts--
-		if counts == 0 {
-			return nil, fmt.Errorf("Can not connect to the RabbitMQ")
-		}
-		backOff = backOff + (time.Second * 2)
+// 		fmt.Println("RabbitMQ not yet read")
+// 		counts--
+// 		if counts == 0 {
+// 			return nil, fmt.Errorf("Can not connect to the RabbitMQ")
+// 		}
+// 		backOff = backOff + (time.Second * 2)
 
-		fmt.Println("Backing off.....")
-		time.Sleep(backOff)
-		continue
+// 		fmt.Println("Backing off.....")
+// 		time.Sleep(backOff)
+// 		continue
 
-	}
-	return connection, nil
-}
+// 	}
+// 	return connection, nil
+// }
