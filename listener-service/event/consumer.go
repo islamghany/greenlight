@@ -1,17 +1,11 @@
 package event
 
 import (
-	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
-	"listener-service/mailpb"
 	"log"
-	"net/http"
-	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-	"google.golang.org/grpc"
 )
 
 type Consumer struct {
@@ -54,6 +48,7 @@ func (c *Consumer) Listen(topics []string) error {
 		return err
 	}
 	defer ch.Close()
+
 	q, err := declareRandomQueue(ch)
 
 	if err != nil {
@@ -64,7 +59,7 @@ func (c *Consumer) Listen(topics []string) error {
 		err = ch.QueueBind(
 			q.Name,
 			s,
-			"logs_topic",
+			"messages_topic",
 			false,
 			nil,
 		)
@@ -81,38 +76,33 @@ func (c *Consumer) Listen(topics []string) error {
 	forerver := make(chan bool)
 	go func() {
 		for d := range messages {
+
 			go handlePayload(d.Body)
 		}
 	}()
 
-	fmt.Printf("Waiting for message [EXchange, Queue] [logs_topic, %s]\n", q.Name)
+	fmt.Printf("Waiting for message [Exchange, Queue] [messages_topic, %s]\n", q.Name)
 	<-forerver
 
 	return nil
 }
 
 func handlePayload(p []byte) {
-	var err error
 
-	err = sendMail(p)
-	if err != nil {
-		log.Println(err)
+	var payload Payload
+
+	err := json.Unmarshal(p, &payload)
+
+	if payload.Name == "mail" && err == nil {
+		err = sendMailViaGRPC([]byte(payload.Data))
 	}
-	// switch p.Name {
-	// case "mail", "event":
-	// 	err = sendMailViaGRPC(p)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 	}
-	// default:
-	// 	err = sendMailViaGRPC(p)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 	}
-	// }
-}
-func logEvent(entry Payload) error {
-	return nil
+	if err != nil || payload.Name == "log" {
+		err = sendLogViaGRPC([]byte(payload.Data))
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
 }
 
 type MailPayload struct {
@@ -124,65 +114,46 @@ type MailPayload struct {
 }
 
 func sendMailViaGRPC(payload []byte) error {
-	conn, err := grpc.Dial("mail-service:50051", grpc.WithInsecure())
 
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	c := mailpb.NewMailSeviceClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-
-	defer cancel()
-	dest := &MailPayload{}
-	err = json.Unmarshal(payload, dest)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	_, err = c.SendMail(ctx, &mailpb.MailRequest{
-		MailEntry: &mailpb.Mail{
-			From:         dest.From,
-			To:           dest.To,
-			Subject:      dest.Subject,
-			TemplateFile: dest.TemplateFile,
-			Message:      dest.Message,
-			Attachments:  []string{},
-		},
-	})
-
-	if err != nil {
-		return err
-	}
+	log.Println(string(payload))
 	return nil
+	// conn, err := grpc.Dial("mail-service:50051", grpc.WithInsecure())
+
+	// if err != nil {
+	// 	return err
+	// }
+
+	// defer conn.Close()
+
+	// c := mailpb.NewMailSeviceClient(conn)
+
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+
+	// defer cancel()
+	// dest := &MailPayload{}
+	// err = json.Unmarshal(payload, dest)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return err
+	// }
+
+	// _, err = c.SendMail(ctx, &mailpb.MailRequest{
+	// 	MailEntry: &mailpb.Mail{
+	// 		From:         dest.From,
+	// 		To:           dest.To,
+	// 		Subject:      dest.Subject,
+	// 		TemplateFile: dest.TemplateFile,
+	// 		Message:      dest.Message,
+	// 		Attachments:  []string{},
+	// 	},
+	// })
+
+	// if err != nil {
+	// 	return err
+	// }
+	// return nil
 }
-func sendMail(entry []byte) error {
-
-	mailServiceURL := "http://mail-service/send"
-
-	// post to mail service
-	request, err := http.NewRequest("POST", mailServiceURL, bytes.NewBuffer(entry))
-	if err != nil {
-		return err
-	}
-
-	request.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	// make sure we get back the right status code
-	if response.StatusCode != http.StatusCreated {
-		return err
-	}
+func sendLogViaGRPC(payload []byte) error {
 
 	return nil
 }

@@ -2,13 +2,7 @@
 
 
 
-  # listener-service:
-  #   build:
-  #     context: ./../listener-service
-  #     dockerfile: ./../listener-service/Dockerfile
-  #   restart: always
-  #   networks:
-  #     greenlight-net:
+ 
   # mail-service:
   #   build:
   #     context: ./../mail-service
@@ -41,14 +35,4 @@
         #   greenlight-net:
 
 
-        # rabbitmq:
-        #   image: "rabbitmq:3.10.7-alpine"
-        #   ports:
-        #     - "5672:5672"
-        #   deploy:
-        #     mode: replicated
-        #     replicas: 1
-        #   volumes:
-        #     - ./db-data/rabbitmq/:/var/lib/rabbitmq/
-        #   networks:
-        #     greenlight-net:
+       

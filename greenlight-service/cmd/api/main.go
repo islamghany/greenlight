@@ -6,6 +6,7 @@ import (
 	"expvar"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"sync"
@@ -13,8 +14,10 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc"
 	"islamghany.greenlight/internals/data"
+	"islamghany.greenlight/internals/event"
 	"islamghany.greenlight/internals/jsonlog"
 	"islamghany.greenlight/userspb"
 )
@@ -60,11 +63,11 @@ type config struct {
 
 // app struct to hold the http handlers, helpers and middleware
 type application struct {
-	config config
-	logger *jsonlog.Logger
-	models data.Models
-	wg     sync.WaitGroup
-	//amqp   *amqp.Connection
+	config     config
+	logger     *jsonlog.Logger
+	models     data.Models
+	wg         sync.WaitGroup
+	emitter    *event.Emitter
 	userClient userspb.UserServiceClient
 }
 
@@ -125,14 +128,18 @@ func main() {
 
 	logger.PrintInfo("database connection pool established", nil)
 
-	// rabbitConn, err := connectAMQP(10, 1*time.Second)
+	rabbitConn, err := connectAMQP(10, 1*time.Second)
 
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer rabbitConn.Close()
-	// logger.PrintInfo("rabbitmq connection established", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rabbitConn.Close()
+	logger.PrintInfo("rabbitmq connection established", nil)
 
+	emitter, err := event.NewEventEmitter(rabbitConn)
+	if err != nil {
+		log.Fatal(err)
+	}
 	expvar.NewString("version").Set(version)
 
 	// Publish the number of active goroutines.
@@ -161,10 +168,10 @@ func main() {
 	u := userspb.NewUserServiceClient(conn)
 
 	app := &application{
-		config: conf,
-		logger: logger,
-		models: data.NewModels(db, rdb),
-		//amqp:   rabbitConn,
+		config:     conf,
+		logger:     logger,
+		models:     data.NewModels(db, rdb),
+		emitter:    emitter,
 		userClient: u,
 	}
 
@@ -249,28 +256,28 @@ func loadEnvVars(conf *config) {
 	conf.vars.redisPassword = os.Getenv("REDIS_PASSWORD")
 }
 
-// func connectAMQP(counts int64, backOff time.Duration) (*amqp.Connection, error) {
-// 	var connection *amqp.Connection
+func connectAMQP(counts int64, backOff time.Duration) (*amqp.Connection, error) {
+	var connection *amqp.Connection
 
-// 	for {
-// 		c, err := amqp.Dial("amqp://guest:guest@rabbitmq")
-// 		if err == nil {
-// 			log.Println("connected to RabbitMQ")
-// 			connection = c
-// 			break
-// 		}
+	for {
+		c, err := amqp.Dial("amqp://guest:guest@rabbitmq")
+		if err == nil {
+			log.Println("connected to RabbitMQ")
+			connection = c
+			break
+		}
 
-// 		fmt.Println("RabbitMQ not yet read")
-// 		counts--
-// 		if counts == 0 {
-// 			return nil, fmt.Errorf("Can not connect to the RabbitMQ")
-// 		}
-// 		backOff = backOff + (time.Second * 2)
+		fmt.Println("RabbitMQ not yet read")
+		counts--
+		if counts == 0 {
+			return nil, fmt.Errorf("Can not connect to the RabbitMQ")
+		}
+		backOff = backOff + (time.Second * 2)
 
-// 		fmt.Println("Backing off.....")
-// 		time.Sleep(backOff)
-// 		continue
+		fmt.Println("Backing off.....")
+		time.Sleep(backOff)
+		continue
 
-// 	}
-// 	return connection, nil
-// }
+	}
+	return connection, nil
+}
