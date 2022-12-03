@@ -11,6 +11,39 @@ services:
       greenlight-net:
 
 
+  auth-db:
+    image: postgres:12-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=islamghany
+      - POSTGRES_DB=auth
+
+    networks:
+      greenlight-net:
+    ports:
+      - "5433:5432"
+
+    command: -p 5433
+    volumes:
+      - ./db-data/auth-db/:/var/lib/postgres/data
+
+  auth-service:
+    build:
+      context: ./../auth-service
+      dockerfile: ./../auth-service/Dockerfile
+    restart: always
+    depends_on:
+      - auth-db
+      - redis
+    networks:
+      greenlight-net:
+    environment:
+      DSN: postgresql://root:islamghany@auth-db:5433/auth?sslmode=disable
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CLIENT_URL: http://localhost:3000
+      PORT: 80
   postgres:
     image: postgres:12-alpine
     restart: always
@@ -23,31 +56,6 @@ services:
     volumes:
       - ./db-data/postgres/:/var/lib/postgres/data
 
-  listener-service:
-    build:
-      context: ./../listener-service
-      dockerfile: ./../listener-service/Dockerfile
-    restart: always
-    networks:
-      greenlight-net:
-  mail-service:
-    build:
-      context: ./../mail-service
-      dockerfile: ./../mail-service/Dockerfile
-    restart: always
-    environment:
-      MAIL_DOMAIN: localhost
-      MAIL_HOST: mailhog
-      MAIL_PORT: 1025
-      MAIL_ENCRYPTION: none
-      MAIL_USERNAME: ""
-      MAIL_PASSWORD: ""
-      FROM_NAME: "islam ghany"
-      FROM_ADDRESS: islam.ghany@example.com
-    networks:
-      greenlight-net:
-
-
   api:
     build:
       context: ./../greenlight-service
@@ -56,8 +64,7 @@ services:
     depends_on:
       - postgres
       - redis
-    ports:
-      - "4000:80"
+      - auth-service
     environment:
       GREENLIGHT_DB_DSN: postgresql://root:islamghany@postgres:5432/greenlight?sslmode=disable
       REDIS_HOST: redis
@@ -65,7 +72,7 @@ services:
       GREENLIGHT_TOKEN: greenlight-token
       GREENLIGHT_USERID_TOKEN: greenlight-userId-token
       CLIENT_URL: http://localhost:3000
-
+      PORT: 80
     entrypoint:
       [
         "/app/wait-for.sh",
@@ -78,25 +85,16 @@ services:
       greenlight-net:
 
 
-  mailhog:
-    image: "mailhog/mailhog:latest"
+  api-gateway:
+    depends_on:
+      - auth-service
+      - api
     restart: always
+    build:
+      context: ./../api-gateway
+      dockerfile: ./../api-gateway/Dockerfile
     ports:
-      - "1025:1025"
-      - "8025:8025"
-    networks:
-      greenlight-net:
-
-
-  rabbitmq:
-    image: "rabbitmq:3.10.7-alpine"
-    ports:
-      - "5672:5672"
-    deploy:
-      mode: replicated
-      replicas: 1
-    volumes:
-      - ./db-data/rabbitmq/:/var/lib/rabbitmq/
+      - "3050:80"
     networks:
       greenlight-net:
 networks:
