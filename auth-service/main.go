@@ -19,6 +19,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 func main() {
@@ -71,12 +72,19 @@ func main() {
 	redisCache := cache.NewCache(rdb)
 	defer rdb.Close()
 
+	rabbitConn, err := connectAMQP(10, 1*time.Second)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rabbitConn.Close()
+
 	maker, err := token.NewPasetoMaker(config.TOKEN_SYMMETRIC_KEY[:32])
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	server := api.NewServer(store, redisCache, &config, v, maker)
+	server := api.NewServer(store, redisCache, &config, v, maker, rabbitConn)
 
 	log.Printf("Connected to server on port %d \n", config.PORT)
 	go server.Start(config.PORT)
@@ -145,4 +153,30 @@ func openRedis(host, port string) (*redis.Client, error) {
 		return nil, err
 	}
 	return rdb, nil
+}
+
+func connectAMQP(counts int64, backOff time.Duration) (*amqp.Connection, error) {
+	var connection *amqp.Connection
+
+	for {
+		c, err := amqp.Dial("amqp://guest:guest@rabbitmq")
+		if err == nil {
+			log.Println("connected to RabbitMQ")
+			connection = c
+			break
+		}
+
+		fmt.Println("RabbitMQ not yet read")
+		counts--
+		if counts == 0 {
+			return nil, fmt.Errorf("Can not connect to the RabbitMQ")
+		}
+		backOff = backOff + (time.Second * 2)
+
+		fmt.Println("Backing off.....")
+		time.Sleep(backOff)
+		continue
+
+	}
+	return connection, nil
 }
