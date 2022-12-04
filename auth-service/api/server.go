@@ -10,7 +10,8 @@ import (
 	"log"
 	"net/http"
 	"time"
-	//"gopkg.in/go-playground/validator.v9"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type envelope map[string]interface{}
@@ -22,15 +23,17 @@ type Server struct {
 	validator *utils.UserValidtor
 	maker     token.Maker
 	userspb.UnimplementedUserServiceServer
+	amqp *amqp.Connection
 }
 
-func NewServer(s *db.Queries, c *cache.Cache, conf *utils.Config, v *utils.UserValidtor, maker token.Maker) *Server {
+func NewServer(s *db.Queries, c *cache.Cache, conf *utils.Config, v *utils.UserValidtor, maker token.Maker, amqp *amqp.Connection) *Server {
 	return &Server{
 		store:     s,
 		cache:     c,
 		config:    conf,
 		validator: v,
 		maker:     maker,
+		amqp:      amqp,
 	}
 }
 

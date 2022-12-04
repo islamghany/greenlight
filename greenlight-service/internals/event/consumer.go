@@ -107,13 +107,6 @@ func logEvent(entry Payload) error {
 	return nil
 }
 
-type MailPayload struct {
-	From    string `json:"from"`
-	To      string `json:"to"`
-	Subject string `json:"subject"`
-	Message string `json:"message"`
-}
-
 func sendMail(entry Payload) error {
 
 	jsonData, err := json.MarshalIndent(entry, "", "\t")

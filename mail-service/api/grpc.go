@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"mailer-service/mailpb"
 	"net"
@@ -18,7 +19,7 @@ func (s *Server) OpenGRPC(port int) error {
 	}
 
 	gServer := grpc.NewServer()
-	mailpb.RegisterMailSeviceServer(gServer, &Server{})
+	mailpb.RegisterMailSeviceServer(gServer, s)
 
 	if err := gServer.Serve(lis); err != nil {
 		return err
@@ -27,68 +28,18 @@ func (s *Server) OpenGRPC(port int) error {
 }
 
 func (server *Server) SendMail(ctx context.Context, req *mailpb.MailRequest) (*mailpb.MailResponse, error) {
-	// data := map[string]interface{}{
-	// 	"subject": "Say my name",
-	// 	"message": "heisenbsserg",
-	// }
-	// msg := mailer.Message{
-	// 	From:         "me@example.com",
-	// 	To:           "islamghany3@gmail.com",
-	// 	Data:         data,
-	// 	TemplateFile: "user_welcome.tmpl",
-	// }
-	// server.background(func() {
-	// 	err := server.mailer.Send(msg)
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	}
 
-	// })
-	msg := Message{
+	m := req.GetMailEntry()
 
-		From:    "me@example.com",
-		To:      "islamghany3@gmail.com",
-		Data:    "ndfbfbdhfbhdf",
-		Subject: "islam",
+	if m.TemplateFile == "" {
+		return nil, errors.New("template File must be a valid string path")
 	}
 
-	err := server.Mailer.SendSMTPMessage(msg)
+	err := server.mailer.Send(m)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
-	// input := req.GetMailEntry()
-
-	// fmt.Println(input)
-
-	// data := map[string]interface{}{
-	// 	"subject": input.Subject,
-	// 	"message": input.Message,
-	// }
-
-	// msg := mailer.Message{
-	// 	From:         input.From,
-	// 	To:           input.To,
-	// 	Data:         data,
-	// 	TemplateFile: "user_welcome.tmpl",
-	// 	Attachments:  input.Attachment,
-	// }
-	// fmt.Println("2 :")
-	// s.background(func() {
-	// 	err := s.mailer.Send(msg)
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	}
-
-	// })
-	// // err := s.mailer.Send(msg)
-	// // fmt.Println("3 :")
-	// // if err != nil {
-	// // 	res := &mailpb.MailResponse{Message: "failed!"}
-	// // 	return res, err
-	// // }
-	// // fmt.Println("3 :")
-
-	res := &mailpb.MailResponse{Message: "d"}
+	res := &mailpb.MailResponse{Message: "done"}
 
 	return res, nil
 

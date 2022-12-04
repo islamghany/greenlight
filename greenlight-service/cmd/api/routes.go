@@ -2,11 +2,10 @@ package main
 
 import (
 	"expvar"
-	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"islamghany.greenlight/mailpb"
 	"islamghany.greenlight/userspb"
 )
 
@@ -24,24 +23,36 @@ func (app *application) routes() http.Handler {
 
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
-	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
-	router.HandlerFunc(http.MethodPost, "/send-email", func(w http.ResponseWriter, r *http.Request) {
+	//router.HandlerFunc(http.MethodGet, "/v1/movies/check/healthcheck", app.healthcheckHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/movies/test/send-email", func(w http.ResponseWriter, r *http.Request) {
 
-		defer r.Body.Close()
+		// defer r.Body.Close()
 
-		jsonData, err := io.ReadAll(r.Body)
-
-		if err != nil {
-			app.badRequestResponse(w, r, err)
-			return
-		}
-		fmt.Println(jsonData)
-		// err = app.pushToQueue("name", string(jsonData))
+		// jsonData, err := io.ReadAll(r.Body)
 
 		// if err != nil {
-		// 	app.serverErrorResponse(w, r, err)
+		// 	app.badRequestResponse(w, r, err)
 		// 	return
 		// }
+		// fmt.Println(jsonData)
+		err := app.emitter.SendToMailService(&mailpb.Mail{
+			From:         "islamghany3@gmail.com",
+			To:           "ahmed@islamghany",
+			Subject:      "Main",
+			TemplateFile: "user_welcome.tmpl",
+			Data: map[string]string{
+				"subject":             "Activate your account",
+				"userID":              "1",
+				"tokenExpirationTime": "3 days",
+				"activationToken":     "localhost:3000/activate-account/125",
+			},
+		})
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		// err = app.pushToQueue("name", string(jsonData))
 
 		err = app.writeJson(w, http.StatusCreated, envelope{"messgae": "message successfully sent to"}, nil)
 		if err != nil {
