@@ -9,9 +9,9 @@ message Mail {
     string from = 1;
     string to = 2;
     string subject = 3;
-    string TemplateFile = 4;
-    repeated string attachment = 5;
-    string message = 6;
+    string templateFile = 4;
+    repeated string attachments = 5;
+    map<string, string> data = 6;
 }
 
 message MailRequest {

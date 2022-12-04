@@ -1,16 +1,19 @@
 package event
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"listener-service/mailpb"
 	"log"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Consumer struct {
-	conn      *amqp.Connection
-	queueName string
+	conn       *amqp.Connection
+	mailClient mailpb.MailSeviceClient
 }
 
 type Payload struct {
@@ -18,10 +21,11 @@ type Payload struct {
 	Data string `json:"data"`
 }
 
-func NewConsumer(conn *amqp.Connection) (*Consumer, error) {
+func NewConsumer(conn *amqp.Connection, mailClient mailpb.MailSeviceClient) (*Consumer, error) {
 
 	consumer := &Consumer{
-		conn: conn,
+		conn:       conn,
+		mailClient: mailClient,
 	}
 
 	err := consumer.setup()
@@ -77,7 +81,7 @@ func (c *Consumer) Listen(topics []string) error {
 	go func() {
 		for d := range messages {
 
-			go handlePayload(d.Body)
+			go c.handlePayload(d.Body)
 		}
 	}()
 
@@ -87,14 +91,13 @@ func (c *Consumer) Listen(topics []string) error {
 	return nil
 }
 
-func handlePayload(p []byte) {
-
+func (c *Consumer) handlePayload(p []byte) {
 	var payload Payload
 
 	err := json.Unmarshal(p, &payload)
 
 	if payload.Name == "mail" && err == nil {
-		err = sendMailViaGRPC([]byte(payload.Data))
+		err = c.sendMailViaGRPC([]byte(payload.Data))
 	}
 	if err != nil || payload.Name == "log" {
 		err = sendLogViaGRPC([]byte(payload.Data))
@@ -105,53 +108,34 @@ func handlePayload(p []byte) {
 
 }
 
-type MailPayload struct {
-	From         string `json:"from"`
-	To           string `json:"to"`
-	Subject      string `json:"subject"`
-	Message      string `json:"message"`
-	TemplateFile string `json:"templateFile"`
-}
+func (c *Consumer) sendMailViaGRPC(data []byte) error {
 
-func sendMailViaGRPC(payload []byte) error {
+	m := mailpb.Mail{}
+	err := json.Unmarshal(data, &m)
 
-	log.Println(string(payload))
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+
+	_, err = c.mailClient.SendMail(ctx, &mailpb.MailRequest{
+		MailEntry: &mailpb.Mail{
+			From:         m.From,
+			To:           m.To,
+			Subject:      m.Subject,
+			TemplateFile: m.TemplateFile,
+			Data:         m.Data,
+			Attachments:  []string{},
+		},
+	})
+
+	if err != nil {
+		return err
+	}
 	return nil
-	// conn, err := grpc.Dial("mail-service:50051", grpc.WithInsecure())
 
-	// if err != nil {
-	// 	return err
-	// }
-
-	// defer conn.Close()
-
-	// c := mailpb.NewMailSeviceClient(conn)
-
-	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-
-	// defer cancel()
-	// dest := &MailPayload{}
-	// err = json.Unmarshal(payload, dest)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return err
-	// }
-
-	// _, err = c.SendMail(ctx, &mailpb.MailRequest{
-	// 	MailEntry: &mailpb.Mail{
-	// 		From:         dest.From,
-	// 		To:           dest.To,
-	// 		Subject:      dest.Subject,
-	// 		TemplateFile: dest.TemplateFile,
-	// 		Message:      dest.Message,
-	// 		Attachments:  []string{},
-	// 	},
-	// })
-
-	// if err != nil {
-	// 	return err
-	// }
-	// return nil
 }
 func sendLogViaGRPC(payload []byte) error {
 

@@ -1,12 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"expvar"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"islamghany.greenlight/internals/event"
+	"islamghany.greenlight/mailpb"
 	"islamghany.greenlight/userspb"
 )
 
@@ -36,22 +35,23 @@ func (app *application) routes() http.Handler {
 		// 	return
 		// }
 		// fmt.Println(jsonData)
-		payload := event.Payload{
-			Name: "mail",
-			Data: `{"name":islam, age:23}`,
-		}
-		msg, err := json.Marshal(payload)
-
+		err := app.emitter.SendToMailService(&mailpb.Mail{
+			From:         "islamghany3@gmail.com",
+			To:           "ahmed@islamghany",
+			Subject:      "Main",
+			TemplateFile: "user_welcome.tmpl",
+			Data: map[string]string{
+				"subject":             "Activate your account",
+				"userID":              "1",
+				"tokenExpirationTime": "3 days",
+				"activationToken":     "localhost:3000/activate-account/125",
+			},
+		})
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
-		err = app.emitter.Push(string(msg), "mail")
 
-		if err != nil {
-			app.serverErrorResponse(w, r, err)
-			return
-		}
 		// err = app.pushToQueue("name", string(jsonData))
 
 		err = app.writeJson(w, http.StatusCreated, envelope{"messgae": "message successfully sent to"}, nil)
