@@ -2,10 +2,12 @@ package api
 
 import (
 	db "auth-service/db/sqlc"
+	"auth-service/mailpb"
 	"auth-service/userspb"
 	"auth-service/utils"
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -16,6 +18,7 @@ func IsAnonymous(u *db.User) bool {
 	return u == AnonymousUser
 }
 
+// TODO : add the register operations in a transaction.
 func (server *Server) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	var input struct {
@@ -74,6 +77,37 @@ func (server *Server) registerUserHandler(w http.ResponseWriter, r *http.Request
 		server.serverErrorResponse(w, r, err)
 		return
 	}
+
+	// after created user with the permission, now user must activate his account via his mail
+	// so i will geneate an token and send it his email and then he can varify his account through it.
+
+	activationToken, activationPayload, err := server.maker.CreateToken(u.ID, server.config.ACTIVATE_TOKEN_DURATION)
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// I will send the a message to message broker to send it to the mail service.
+	m := mailpb.Mail{
+		From:         server.config.AUTH_EMAIL,
+		To:           user.Email,
+		Subject:      "Activate your account",
+		TemplateFile: "user_welcome.tmpl",
+		Data: map[string]string{
+			"subject":             "Activate your account",
+			"userID":              fmt.Sprintf("%d", u.ID),
+			"tokenExpirationTime": fmt.Sprintf("%f minutes", time.Until(activationPayload.ExpiredAt).Minutes()),
+			"activationToken":     fmt.Sprintf("user this token through /v1/accounts/user/activate, activation Token is: %s", activationToken),
+		},
+	}
+
+	err = server.emitter.SendToMailService(&m)
+
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+		return
+	}
+
 	err = server.writeJson(w, http.StatusCreated, envelope{"user": u}, nil)
 	if err != nil {
 		server.serverErrorResponse(w, r, err)
@@ -106,6 +140,88 @@ func (server *Server) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// TODO : add the activations operations in a transaction.
+
+func (server *Server) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		TokenPlaintext string `json:"token" validate:"required"`
+	}
+
+	err := server.readJSON(w, r, &input)
+	if err != nil {
+		server.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = server.validator.V.Struct(input)
+
+	if err != nil {
+
+		server.validationErrorResponse(w, r, err, server.validator)
+		return
+	}
+
+	activationPayload, err := server.maker.VerifyToken(input.TokenPlaintext)
+	if err != nil {
+		server.invalidAuthenticationTokenResponse(w, r)
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	user, err := server.store.GetUserByID(ctx, activationPayload.UserID)
+
+	if err != nil {
+		switch {
+		case err == sql.ErrNoRows:
+			server.notFoundResponse(w, r)
+		default:
+			server.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	cancel()
+
+	updatedUser, err := server.store.UpdateUser(context.Background(), db.UpdateUserParams{
+		ID:        user.ID,
+		Version:   user.Version,
+		Activated: sql.NullBool{Bool: true, Valid: true},
+	})
+
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// This user is already verfied then he can write to any thing.
+	// adding the write permission
+
+	err = server.store.AddPermissionForUser(context.Background(), db.AddPermissionForUserParams{
+		ID:   user.ID,
+		Code: userspb.PERMISSION_CODE_movies_write.String(),
+	})
+
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_permissions_pkey"`:
+			server.invalidAuthenticationTokenResponse(w, r)
+		default:
+			server.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	if err != nil {
+
+		server.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = server.writeJson(w, http.StatusOK, envelope{"user": updatedUser}, nil)
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+	}
+}
 func (server *Server) logoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	// user must be authenticated to get into this handler.

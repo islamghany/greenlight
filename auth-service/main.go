@@ -2,6 +2,7 @@ package main
 
 import (
 	"auth-service/api"
+	"auth-service/event"
 	"auth-service/token"
 	"auth-service/utils"
 	"context"
@@ -53,7 +54,7 @@ func main() {
 
 	defer db.Close()
 
-	// 3- run the database migrations
+	// run the database migrations
 
 	err = runMigrate(config.DSN, config.MIGRATION_URL)
 	if err != nil {
@@ -61,6 +62,7 @@ func main() {
 	}
 
 	store := sqlc.New(db)
+
 	// connect to redis caching
 	rdb, err := utils.Connect("redis", 10, 1*time.Second, func() (*redis.Client, error) {
 		return openRedis(config.REDIS_HOST, config.REDIS_PORT)
@@ -72,6 +74,7 @@ func main() {
 	redisCache := cache.NewCache(rdb)
 	defer rdb.Close()
 
+	// connecting to the message broker
 	rabbitConn, err := connectAMQP(10, 1*time.Second)
 
 	if err != nil {
@@ -79,12 +82,20 @@ func main() {
 	}
 	defer rabbitConn.Close()
 
+	// initializing the emitter that responsible for pushing messages to the message broker.
+	emitter, err := event.NewEventEmitter(rabbitConn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// creating the maker that responsible for token genrating and varifying.
 	maker, err := token.NewPasetoMaker(config.TOKEN_SYMMETRIC_KEY[:32])
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	server := api.NewServer(store, redisCache, &config, v, maker, rabbitConn)
+
+	// initialize the server with config
+	server := api.NewServer(store, redisCache, &config, v, maker, rabbitConn, emitter)
 
 	log.Printf("Connected to server on port %d \n", config.PORT)
 	go server.Start(config.PORT)

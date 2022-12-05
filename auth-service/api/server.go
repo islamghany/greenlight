@@ -3,6 +3,7 @@ package api
 import (
 	"auth-service/db/cache"
 	db "auth-service/db/sqlc"
+	"auth-service/event"
 	"auth-service/token"
 	"auth-service/userspb"
 	"auth-service/utils"
@@ -23,10 +24,19 @@ type Server struct {
 	validator *utils.UserValidtor
 	maker     token.Maker
 	userspb.UnimplementedUserServiceServer
-	amqp *amqp.Connection
+	amqp    *amqp.Connection
+	emitter *event.Emitter
 }
 
-func NewServer(s *db.Queries, c *cache.Cache, conf *utils.Config, v *utils.UserValidtor, maker token.Maker, amqp *amqp.Connection) *Server {
+func NewServer(
+	s *db.Queries,
+	c *cache.Cache,
+	conf *utils.Config,
+	v *utils.UserValidtor,
+	maker token.Maker,
+	amqp *amqp.Connection,
+	emitter *event.Emitter,
+) *Server {
 	return &Server{
 		store:     s,
 		cache:     c,
@@ -34,6 +44,7 @@ func NewServer(s *db.Queries, c *cache.Cache, conf *utils.Config, v *utils.UserV
 		validator: v,
 		maker:     maker,
 		amqp:      amqp,
+		emitter:   emitter,
 	}
 }
 
