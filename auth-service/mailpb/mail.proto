@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package mailpb;
+
+option go_package="/mailpb";
+
+
+message Mail {
+    string from = 1;
+    string to = 2;
+    string subject = 3;
+    string templateFile = 4;
+    repeated string attachments = 5;
+    map<string, string> data = 6;
+}
+
+message MailRequest {
+    Mail mailEntry = 1;
+}
+
+message MailResponse {
+    string message = 1;
+}
+
+service MailSevice {
+    rpc SendMail(MailRequest) returns (MailResponse);
+}
