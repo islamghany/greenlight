@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"auth-service/logspb"
 	"auth-service/mailpb"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -75,6 +76,34 @@ func (e *Emitter) SendToMailService(m *mailpb.Mail) error {
 	payload := Payload{
 		Name: "mail",
 		Data: string(mailJSON),
+	}
+
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	err = e.Push(string(payloadJSON), payload.Name)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *Emitter) SendToLogService(m *logspb.Log) error {
+
+	m.ServiceName = "auth-service"
+
+	logJSON, err := json.Marshal(m)
+
+	if err != nil {
+		return err
+	}
+
+	payload := Payload{
+		Name: "log",
+		Data: string(logJSON),
 	}
 
 	payloadJSON, err := json.Marshal(payload)

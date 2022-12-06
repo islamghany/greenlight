@@ -10,6 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"islamghany.greenlight/logspb"
 )
 
 func (app *application) serve() error {
@@ -44,6 +46,14 @@ func (app *application) serve() error {
 			"signal": s.String(),
 		})
 
+		err := app.emitter.SendToLogService(&logspb.Log{
+			ErrorMessage: "shutting down server",
+			StackTrace:   fmt.Sprintf("signal", s.String()),
+		})
+
+		if err != nil {
+			app.logger.PrintError(err, nil)
+		}
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
@@ -54,7 +64,7 @@ func (app *application) serve() error {
 		// error (which may happen because of a problem closing the listeners, or
 		// because the shutdown didn't complete before the 5-second context deadline is
 		// hit). We relay this return value to the shutdownError channel.
-		err := srv.Shutdown(ctx)
+		err = srv.Shutdown(ctx)
 		if err != nil {
 			shutdownError <- err
 		}

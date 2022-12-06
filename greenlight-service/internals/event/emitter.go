@@ -92,6 +92,8 @@ func (e *Emitter) SendToMailService(m *mailpb.Mail) error {
 
 func (e *Emitter) SendToLogService(m *logspb.Log) error {
 
+	m.ServiceName = "movies-service"
+
 	logJSON, err := json.Marshal(m)
 
 	if err != nil {
