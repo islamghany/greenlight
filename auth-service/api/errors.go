@@ -19,6 +19,12 @@ func (server *Server) errorResponse(w http.ResponseWriter, r *http.Request, stat
 		w.WriteHeader(500)
 	}
 }
+
+func (server *Server) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
+	message := fmt.Sprintf("the %s method is not supported for this resource", r.Method)
+	server.errorResponse(w, r, http.StatusMethodNotAllowed, message)
+}
+
 func (server *Server) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 
 	server.background(func() {

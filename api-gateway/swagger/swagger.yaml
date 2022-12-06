@@ -1,0 +1,888 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Greenlight api
+  description: greenlight is a public api for movies
+  termsOfService: https://greenlight/terms-of-service
+  contact:
+    name: islam mostafa
+    email: islamghany3@gmail.com
+    url: https://github.com/islamghany
+  license:
+    name: Islam mostafa license
+    url:  https://github.com/islamghany
+    
+servers: 
+  - url: http://localhost:3050/v1
+    description: the dev server
+  - url: https://greenlight.com
+    description: the prod server  
+paths:
+  /movies/healthcheck:
+  
+    get:
+      tags:
+        - debug
+      description: Show if the movies service that if the server is working correctly or not
+      operationId: healthCheck
+      responses:
+        200:
+          $ref : "#/components/responses/HealthCheckResponse"
+        500:
+          $ref: '#/components/responses/ServerError'
+  /movies/debug/vars:
+    get:
+      tags:
+        - debug
+      description: Exposing Metrics with Expvar in movies service
+      operationId: showVars
+      responses:
+        200:
+          description: success request 
+          content: 
+            application/json:
+              schema:
+                type: object
+                additionalProperties: 
+                  type: string
+
+        500:
+          $ref: '#/components/responses/ServerError'                          
+  /movies:
+    get:
+      tags:
+        - movies
+      description: obtain movies (filtering)
+      operationId: getAllMovies
+      parameters:
+        - name: title
+          in: query
+          description: the title of the movie
+          schema: 
+            type: string
+            default: ""
+        - name: genres
+          in: query
+          description: an array containg the genres of the movie
+          schema:
+            type: array
+            default: []
+            items: 
+              type: string
+        - name: page
+          in: query
+          description: how many pages   
+          schema: 
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: how many movies in one page   
+          schema: 
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: sort the returned array movie depend on these params   
+          schema: 
+            type: string
+            enum:
+              - title #ACS
+              - -title # Desc
+              - id
+              - -id
+               - year
+              - -year
+               - runtime
+              - -runtime
+            default: id        
+      responses:
+        200:
+          description: success request 
+          content: 
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/MoviesResponse"
+                
+        404:
+          $ref: '#/components/responses/NotFoundResponse'
+        500:
+          $ref: '#/components/responses/ServerError' 
+        401:
+          $ref: '#/components/responses/AuthenticationRequiredResponse'  
+       
+    post:
+      tags:
+        - movies
+      description: Create New Movie
+      operationId: createMovie
+      requestBody:
+        $ref: "#/components/requestBodies/CreateMovieBody"
+      responses:
+        201:
+          description: success request 
+          headers:
+            Location:
+              description: the location of the movie
+              schema:
+                type: string
+                example: /v1/movie/4
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  movie: 
+                    $ref: "#/components/schemas/Movie"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"               
+        401:
+          $ref: '#/components/responses/AuthenticationRequiredResponse'  
+      
+      security:
+        - movies_auth:
+          - 'movies_write'
+        - accessToken: []  
+  /movies/get/{id}:
+    get:
+      tags:
+        - movies
+      description: obtain individual movie
+      operationId: getMovie
+      parameters:
+        - name: id
+          in: path
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  movie:
+                    $ref: "#/components/schemas/Movie"
+        500:
+          $ref: '#/components/responses/ServerError'
+        404:
+          $ref: "#/components/responses/NotFoundResponse"               
+        401:
+          $ref: '#/components/responses/AuthenticationRequiredResponse'
+  /movies/update/{id}:                  
+    patch:
+      tags:
+        - movies
+      description: update Movie
+      operationId: updateMovie
+      parameters:
+        - name: id
+          in: path
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateMovieBody'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  movie:
+                    $ref: "#/components/schemas/Movie"   
+        500:
+          $ref: '#/components/responses/ServerError'
+        409:
+          $ref: '#/components/responses/EditConflictResponse'
+        400:
+          $ref: '#/components/responses/BadRequestResponse'
+        404:
+          $ref: "#/components/responses/NotFoundResponse"               
+        401:
+          $ref: '#/components/responses/AuthenticationRequiredResponse' 
+      security:
+        - movies_auth:
+          - 'movies_write'
+        - accessToken: []
+  /movies/delete/{id}:    
+    delete:
+      tags:
+        - movies
+      description: delete Movie
+      operationId: deleteMovie
+      parameters:
+        - name: id
+          in: path
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64 
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messgae:
+                    type: string
+        500:
+          $ref: '#/components/responses/ServerError'
+        404:
+          $ref: "#/components/responses/NotFoundResponse"               
+        401:
+          $ref: '#/components/responses/AuthenticationRequiredResponse' 
+      security:
+        - movies_auth:
+          - 'movies_write'
+        - accessToken: []
+  /movies/most-movies/likes:
+    get:
+      tags:
+        - movies
+      description: get the most liked movies
+      operationId: getMostLikedMovies
+      responses:
+        200:
+          description: success operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  movies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Movie"
+        500:
+          $ref: '#/components/responses/ServerError'   
+  /movies/most-movies/views:
+    get:
+      tags:
+        - movies
+      description: get the most viewd movies
+      operationId: getMostViewedMovies
+      responses:
+        200:
+          description: success operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  movies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Movie"
+                  
+        500:
+          $ref: '#/components/responses/ServerError'               
+  /accoutns/users:
+    get:
+      tags:
+        - users
+      description: Retreive the current user data
+      operationId: getCurrentUser
+      responses:
+        200:
+          description: user created
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  user: 
+                    $ref: "#/components/schemas/User"
+        500:
+          $ref: '#/components/responses/ServerError'
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"       
+      security:
+        - accessToken: [] 
+    post:
+      tags:
+          - users
+      description: Regisster user
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+        description: Created user object
+        required: true   
+      responses:
+        201:
+          description: user created
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  user: 
+                    $ref: "#/components/schemas/User"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"            
+  /account/users/{id}:
+    get:
+      tags:
+        - users
+      description: Retreive a user with id
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: success operation
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  user: 
+                    $ref: "#/components/schemas/User"
+        500:
+          $ref: '#/components/responses/ServerError'
+        404:
+          $ref: "#/components/responses/NotFoundResponse"
+  /activate/users/activate:
+    put:
+      tags:
+        - users
+      description: active user after a register
+      operationId: activateUser
+      security:
+        - accessToken: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        201: 
+          description: user activated
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  user: 
+                    $ref: "#/components/schemas/User"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse" 
+        409:
+          $ref: "#/components/responses/EditConflictResponse" 
+  /accoutns/tokens/authentication:
+    post:
+      tags:
+        - tokens
+      description: User login
+      operationId: signinUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthenticateUser"  
+      responses:
+        201:
+          description: user activated
+          content: 
+            application/json:
+               schema:
+                type: object
+                properties:
+                  user: 
+                    $ref: "#/components/schemas/AuthenticateUserResponse"    
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"
+  /accoutns/tokens/renew-access-token:  
+     post: 
+      tags:
+        - tokens
+      description: generate new access token and store it in the cookie
+      operationId: renewAccesstoken
+      security:
+        - refreshToken: []
+      responses:
+        201:
+          description:  token created 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token_expires_at:
+                    type: string     
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"
+  /accoutns/tokens/reset-password-token:
+    post: 
+      tags:
+        - tokens
+      description: create reset password token
+      operationId: createResetPasswordToken
+      security:
+        - accessToken: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailObject"
+      responses:
+        201:
+          description: token has been sent to user's email   
+          content:
+            application/json:
+              schema:
+                $ref : "#/components/schemas/SuccessResponse"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"                 
+  /accoutns/users/logout:
+    post:
+      tags:
+        - users
+      description: logout user
+      operationId: logoutUser
+      security:
+        - accessToken: []
+      responses:
+        200:
+          description: user has been signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse" 
+  /movies/likes/{id}:
+    get:
+      tags:
+        - likes
+      description: get the likes of the specific movie
+      operationId: getMovieLikes
+      parameters:
+        - name: id
+          in: path
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Success operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  likes:
+                   $ref: "#/components/schemas/Like"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"             
+    delete:
+      tags:
+        - likes
+      description: remove a like of the specific movie
+      operationId: unlikeMovie
+      parameters:
+        - name: id
+          in: path
+          description: the id of the movie
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Success operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"             
+      security:
+        - movies_auth:
+          - 'movies_read'
+        - accessToken: []  
+  /movies/likes:  
+    post:
+      tags:
+        - likes
+      description: add a like of the specific movie
+      operationId: likeMovie
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                movie_id:
+                  type: integer
+                  format: int64
+      responses:
+        200:
+          description: Success operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          $ref: '#/components/responses/ServerError'
+        400:
+          $ref: "#/components/responses/BadRequestResponse" 
+        422:
+          $ref: "#/components/responses/FailedValidationResponse"
+        401:
+          $ref: "#/components/responses/AuthenticationRequiredResponse"             
+      security:
+        - movies_auth:
+           - 'movies_read'
+
+components:
+  schemas:
+    EmailObject:
+      description: email string inside an object
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          example: islamghany3@gmail.com
+    MoviesResponse:
+      description: a list of movies and metadata about it 
+      type: object
+      properties:
+        metadata: 
+            $ref: "#/components/schemas/MetaData"
+        movies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Movie"       
+    Movie:
+      description: model containg the movie schema
+      type: object
+      required:
+        - id
+        - runtime
+        - year
+        - genres
+        - title
+        - user_id
+        - username
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 4
+        title:
+          type: string
+          example: Batman 
+        created_at:
+          type: string
+          format: date
+          example: 2014-06-26 04:07:31
+        runtime:
+          type: string 
+          example: 150 min
+          description: the runtime of the movie is represented in the database as a normal year but we manipulated it before and after converting it to json to make it a nice string
+        genres:
+          type: array
+          example: [drama, romantic]
+          description: the categories that the movie belongs
+          items:
+            type: string
+        year:
+          type: integer
+          format: int32
+        version: 
+          type: string
+          description: is used to indicate how many times this movies had been changed, it help so that we can make it not in the critical section    
+        count:
+          type: integer
+          description: the number of the views to this movie
+        likes:
+          type: integer
+          description: the number of likes on this movie 
+        user_id:
+          type: integer
+          format: int64
+          description: the id of the user that has created that movie
+        username:
+          type: string
+          description: the username of the user that has created that movie    
+    MetaData:
+      description: the meta about a number of items
+      type: object
+      properties:
+        current_page:
+          type: integer
+        page_size:
+          type: integer
+        first_page:
+          type: integer 
+        last_page:
+          type: integer
+        total_reocrds:
+          type: integer   
+    ErrorResponse:
+      description: Server Error
+      type: object
+      properties:
+        error: 
+          type: string
+    CreateMovie:
+      description: data required for create a movie
+      type: object
+      properties:
+        title: 
+          type: string
+        year:
+          type: integer
+          format: int32
+        genres:
+          type: array
+          items:
+            type: string 
+        runtime:
+          type: string             
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        username:
+          type: string  
+        activated: 
+          type: boolean
+        email:
+          type: string
+        password:
+          type: string
+        version:
+          type: string 
+        created_at:
+          type: string
+          format: data 
+    CreateUser:
+      type: object
+      properties:
+        name:
+          type: string
+        username:
+          type: string  
+        email:
+          type: string
+        password:
+          type: string 
+    AuthenticateUserResponse:
+      type: object
+      properties:
+        user: 
+          $ref: "#/components/schemas/User"
+        session_id:
+          type: string
+        access_token_expires_at: 
+          type: string  
+        refresh_token_expires_at: 
+          type: string
+
+    AuthenticateUser:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    Like:
+      type: object
+      properties:
+        movie_id:
+          type: integer
+          format: int64
+        isCurrentUserLiked:
+          type: integer
+          format: int32
+        likes:
+          type: integer
+          format: int64    
+    Token:
+      type: object
+      properties:
+        plaintext:
+          type: string    
+        Expiry:
+          type: string 
+    SuccessResponse:
+      description: success operation
+      type: object
+      properties:
+        messgae: 
+          type: string     
+  responses:
+    HealthCheckResponse:
+      description: Success request
+      content:
+        application/json:
+          schema: 
+            type: object
+            properties:
+              status:
+                type: string
+                example: not availble
+              system_info:
+                type: object
+                items:
+                  properties:
+                    environment:
+                      type: string
+                    version: 
+                      type: string
+    ServerError:
+      description: Server Error
+      content:
+        application/json:
+          schema: 
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'     
+    NotFoundResponse:
+      description: the requested resource could not be found - 404
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+    FailedValidationResponse:
+      description: Invlaid Input data - 422
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+    BadRequestResponse:
+      description: Bad Request - 400
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+    
+    EditConflictResponse:
+      description: Edit Conflict Error - 409
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+    AuthenticationRequiredResponse:
+      description: must be authenticated to access this resource - 401
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+    NotPermittedResponse:
+      description: user account doesn't have the necessary permissions to access this resource - 403
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+  requestBodies:
+    CreateMovieBody:
+      description: movie data
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/CreateMovie"
+    UpdateMovieBody:
+      description: updated movie data              
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/CreateMovie"
+  securitySchemes:
+    refreshToken:
+      type: apiKey
+      in: cookie
+      name: refresh_token
+    accessToken:
+      type: apiKey
+      in: cookie
+      name: access_token
