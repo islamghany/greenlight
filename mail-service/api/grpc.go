@@ -27,7 +27,7 @@ func (s *Server) OpenGRPC(port int) error {
 	return nil
 }
 
-func (server *Server) SendMail(ctx context.Context, req *mailpb.MailRequest) (*mailpb.MailResponse, error) {
+func (server *Server) InsertLog(ctx context.Context, req *mailpb.MailRequest) (*mailpb.MailResponse, error) {
 
 	m := req.GetMailEntry()
 

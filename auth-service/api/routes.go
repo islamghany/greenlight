@@ -20,5 +20,5 @@ func (server *Server) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/tokens/authentication", server.createAuthenticationTokenHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/accouts/tokens/renew-access-token", server.renewAccessTokenHandler)
-	return router
+	return server.recoverPanic(router)
 }

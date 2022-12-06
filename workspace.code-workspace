@@ -17,6 +17,12 @@
     },
     {
       "path": "api-gateway"
+    },
+    {
+      "path": "logger-service"
+    },
+    {
+      "path": "logger-service.go"
     }
   ]
 }

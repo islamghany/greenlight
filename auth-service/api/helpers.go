@@ -99,8 +99,12 @@ func (server *Server) readJSON(w http.ResponseWriter, r *http.Request, dest inte
 }
 
 func (app *Server) background(fn func()) {
+	// Increment the WaitGroup counter.
+	app.wg.Add(1)
 	go func() {
 
+		// Use defer to decrement the WaitGroup counter before the goroutine returns.
+		defer app.wg.Done()
 		defer func() {
 			if err := recover(); err != nil {
 				fmt.Println(err)

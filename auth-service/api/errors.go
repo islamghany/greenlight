@@ -1,6 +1,7 @@
 package api
 
 import (
+	"auth-service/logspb"
 	"auth-service/utils"
 	"fmt"
 	"log"
@@ -19,6 +20,16 @@ func (server *Server) errorResponse(w http.ResponseWriter, r *http.Request, stat
 	}
 }
 func (server *Server) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+
+	server.background(func() {
+		err := server.emitter.SendToLogService(&logspb.Log{
+			ErrorMessage: err.Error(),
+			StackTrace:   fmt.Sprintf("request_method: %s, request_url: %s", r.Method, r.URL.String()),
+		})
+		if err != nil {
+			log.Println(err)
+		}
+	})
 	log.Println("error: ", err)
 
 	message := "the server encountered a problem and could not process your request"
