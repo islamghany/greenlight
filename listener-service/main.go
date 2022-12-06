@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"listener-service/event"
+	"listener-service/logspb"
 	"listener-service/mailpb"
 	"log"
 	"time"
@@ -23,7 +24,7 @@ func main() {
 	}
 	defer rabbitConn.Close()
 
-	// connect to the auth servie via grpc
+	// connect to the mail servie via grpc
 	conn, err := grpc.Dial("mail-service:50051", grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
@@ -32,14 +33,24 @@ func main() {
 	defer conn.Close()
 
 	m := mailpb.NewMailSeviceClient(conn)
+
+	// connect to the log servie via grpc
+	conn2, err := grpc.Dial("logger-service:50051", grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer conn2.Close()
+
+	l := logspb.NewLogServiceClient(conn2)
 	// start listening for message
-	consumer, err := event.NewConsumer(rabbitConn, m)
+	consumer, err := event.NewConsumer(rabbitConn, m, l)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// watch the queue and conume events
-	err = consumer.Listen([]string{"mail"})
+	err = consumer.Listen([]string{"mail", "log"})
 	if err != nil {
 		log.Println(err)
 	}

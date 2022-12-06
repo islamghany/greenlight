@@ -17,9 +17,20 @@ import {
   LogServiceService,
 } from "../protos/logs.js";
 
+const mongoURL = "mongodb://mongo:27017";
+const gRpcURL = "0.0.0.0:50051";
+
 async function connectToMongo() {
   try {
-    await connect("mongodb://127.0.0.1:27017/");
+    await connect(mongoURL, {
+      auth: {
+        password: "islamghany",
+        username: "admin",
+      },
+      dbName: "logs",
+    });
+
+    console.log("Conected Successfuly to mogno");
   } catch (err) {
     console.log(err);
   }
@@ -68,19 +79,17 @@ class Logger implements LogServiceServer {
   }
 }
 
-const server = new Server({
-  "grpc.max_receive_message_length": -1,
-  "grpc.max_send_message_length": -1,
-});
+const server = new Server();
 
 server.addService(LogServiceService, new Logger());
 const startServer = () => {
-  server.bindAsync("0.0.0.0:50051", ServerCredentials.createInsecure(), () => {
+  server.bindAsync(gRpcURL, ServerCredentials.createInsecure(), () => {
     server.start();
 
-    console.log("logger Service is running on 0.0.0.0:50051");
+    console.log("logger Service is running on", gRpcURL);
   });
 };
+
 (async () => {
   try {
     await connectToMongo();

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"islamghany.greenlight/logspb"
 	"islamghany.greenlight/mailpb"
 )
 
@@ -74,6 +75,32 @@ func (e *Emitter) SendToMailService(m *mailpb.Mail) error {
 	payload := Payload{
 		Name: "mail",
 		Data: string(mailJSON),
+	}
+
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	err = e.Push(string(payloadJSON), payload.Name)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *Emitter) SendToLogService(m *logspb.Log) error {
+
+	logJSON, err := json.Marshal(m)
+
+	if err != nil {
+		return err
+	}
+
+	payload := Payload{
+		Name: "log",
+		Data: string(logJSON),
 	}
 
 	payloadJSON, err := json.Marshal(payload)

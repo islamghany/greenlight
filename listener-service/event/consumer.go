@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"listener-service/logspb"
 	"listener-service/mailpb"
 	"log"
 	"time"
@@ -14,6 +15,7 @@ import (
 type Consumer struct {
 	conn       *amqp.Connection
 	mailClient mailpb.MailSeviceClient
+	logClient  logspb.LogServiceClient
 }
 
 type Payload struct {
@@ -21,11 +23,12 @@ type Payload struct {
 	Data string `json:"data"`
 }
 
-func NewConsumer(conn *amqp.Connection, mailClient mailpb.MailSeviceClient) (*Consumer, error) {
+func NewConsumer(conn *amqp.Connection, mailClient mailpb.MailSeviceClient, logClient logspb.LogServiceClient) (*Consumer, error) {
 
 	consumer := &Consumer{
 		conn:       conn,
 		mailClient: mailClient,
+		logClient:  logClient,
 	}
 
 	err := consumer.setup()
@@ -80,7 +83,7 @@ func (c *Consumer) Listen(topics []string) error {
 	forerver := make(chan bool)
 	go func() {
 		for d := range messages {
-
+			fmt.Println("something come !", d.Body, d.RoutingKey)
 			go c.handlePayload(d.Body)
 		}
 	}()
@@ -95,12 +98,12 @@ func (c *Consumer) handlePayload(p []byte) {
 	var payload Payload
 
 	err := json.Unmarshal(p, &payload)
-
+	fmt.Println(p)
 	if payload.Name == "mail" && err == nil {
 		err = c.sendMailViaGRPC([]byte(payload.Data))
 	}
 	if err != nil || payload.Name == "log" {
-		err = sendLogViaGRPC([]byte(payload.Data))
+		err = c.sendLogViaGRPC([]byte(payload.Data))
 		if err != nil {
 			log.Println(err)
 		}
@@ -137,7 +140,27 @@ func (c *Consumer) sendMailViaGRPC(data []byte) error {
 	return nil
 
 }
-func sendLogViaGRPC(payload []byte) error {
+func (c *Consumer) sendLogViaGRPC(data []byte) error {
 
+	l := logspb.Log{}
+	err := json.Unmarshal(data, &l)
+	fmt.Printf("Something are going to log service \n %+V", l)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	_, err = c.logClient.InsertLog(ctx, &logspb.LogRequest{
+		Log: &logspb.Log{
+			ServiceName:  l.ServiceName,
+			ErrorMessage: l.ErrorMessage,
+			StackTrace:   l.StackTrace,
+		},
+	})
+
+	if err != nil {
+		return err
+	}
 	return nil
 }

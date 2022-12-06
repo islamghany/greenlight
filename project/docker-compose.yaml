@@ -119,6 +119,15 @@ services:
     restart: always
     networks:
       greenlight-net:
+  logger-service:
+    build:
+      context: ./../logger-service.go
+      dockerfile: ./../logger-service.go/Dockerfile
+    restart: always
+    depends_on:
+      - mongo
+    networks:
+      greenlight-net:
   mail-service:
     build:
       context: ./../mail-service
@@ -136,6 +145,7 @@ services:
     networks:
       greenlight-net:
 
+
   mailhog:
     image: "mailhog/mailhog:latest"
     restart: always
@@ -143,8 +153,18 @@ services:
       - "1025:1025"
       - "8025:8025"
     networks:
-     greenlight-net:
-    
+      greenlight-net:
+  mongo:
+    image: 'mongo:4.2.23-bionic'
+    ports:
+      - "27017:27017"
+    restart: always
+    volumes:
+      - ./db-data/mongo/:/data/db
+    networks:
+      greenlight-net:
+
+
 networks:
   greenlight-net:
 
