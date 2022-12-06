@@ -98,9 +98,10 @@ func (c *Consumer) handlePayload(p []byte) {
 	var payload Payload
 
 	err := json.Unmarshal(p, &payload)
-	fmt.Println(p)
+
 	if payload.Name == "mail" && err == nil {
 		err = c.sendMailViaGRPC([]byte(payload.Data))
+
 	}
 	if err != nil || payload.Name == "log" {
 		err = c.sendLogViaGRPC([]byte(payload.Data))
@@ -119,7 +120,6 @@ func (c *Consumer) sendMailViaGRPC(data []byte) error {
 	if err != nil {
 		return err
 	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 

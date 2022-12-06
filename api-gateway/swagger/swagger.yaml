@@ -292,7 +292,7 @@ paths:
                   
         500:
           $ref: '#/components/responses/ServerError'               
-  /accoutns/users:
+  /accounts/users:
     get:
       tags:
         - users
@@ -404,7 +404,7 @@ paths:
           $ref: "#/components/responses/FailedValidationResponse" 
         409:
           $ref: "#/components/responses/EditConflictResponse" 
-  /accoutns/tokens/authentication:
+  /accounts/tokens/authentication:
     post:
       tags:
         - tokens
@@ -433,7 +433,7 @@ paths:
           $ref: "#/components/responses/FailedValidationResponse"
         401:
           $ref: "#/components/responses/AuthenticationRequiredResponse"
-  /accoutns/tokens/renew-access-token:  
+  /accounts/tokens/renew-access-token:  
      post: 
       tags:
         - tokens
@@ -459,7 +459,7 @@ paths:
           $ref: "#/components/responses/FailedValidationResponse"
         401:
           $ref: "#/components/responses/AuthenticationRequiredResponse"
-  /accoutns/tokens/reset-password-token:
+  /accounts/tokens/reset-password-token:
     post: 
       tags:
         - tokens
@@ -487,7 +487,7 @@ paths:
           $ref: "#/components/responses/FailedValidationResponse"
         401:
           $ref: "#/components/responses/AuthenticationRequiredResponse"                 
-  /accoutns/users/logout:
+  /accounts/users/logout:
     post:
       tags:
         - users
