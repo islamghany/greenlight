@@ -1,3 +1,0 @@
-ALTER TABLE movies
-ADD COLUMN user_id bigint NOT NULL REFERENCES users ON DELETE CASCADE;
-

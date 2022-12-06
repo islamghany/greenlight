@@ -12,12 +12,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"google.golang.org/grpc"
 	"islamghany.greenlight/internals/data"
+	"islamghany.greenlight/internals/event"
 	"islamghany.greenlight/internals/jsonlog"
+	"islamghany.greenlight/userspb"
 )
 
 // version of the application
@@ -29,7 +31,7 @@ var buildTime string
 
 // config
 type config struct {
-	port int    // port number e.g. 8080
+	port string // port number e.g. 8080
 	env  string // development ot prodction
 	db   struct {
 		dsn          string
@@ -50,29 +52,23 @@ type config struct {
 		password string
 	}
 	vars struct {
-		dbDSN                     string
-		emailPassword             string
-		greenlightUserTokenCookie string
-		greenlightUserIDCookie    string
-		redisHost                 string
-		redisPort                 string
-		redisPassword             string
-		clientUrl                 string
-		greenlightEmail           string
-		cldName                   string
-		cldSecret                 string
-		cldAPIKey                 string
+		dbDSN string
+
+		redisHost     string
+		redisPort     string
+		redisPassword string
+		clientUrl     string
 	}
 }
 
 // app struct to hold the http handlers, helpers and middleware
 type application struct {
-	config config
-	logger *jsonlog.Logger
-	models data.Models
-	wg     sync.WaitGroup
-	amqp   *amqp.Connection
-	cld    *cloudinary.Cloudinary
+	config     config
+	logger     *jsonlog.Logger
+	models     data.Models
+	wg         sync.WaitGroup
+	emitter    *event.Emitter
+	userClient userspb.UserServiceClient
 }
 
 func main() {
@@ -80,7 +76,7 @@ func main() {
 
 	loadEnvVars(&conf)
 
-	flag.IntVar(&conf.port, "port", 4000, "API Server port")
+	flag.StringVar(&conf.port, "port", os.Getenv("PORT"), "API Server port")
 	flag.StringVar(&conf.env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&conf.db.dsn, "db-dsn", conf.vars.dbDSN, "data source name")
 
@@ -132,14 +128,18 @@ func main() {
 
 	logger.PrintInfo("database connection pool established", nil)
 
-	// rabbitConn, err := connectAMQP(10, 1*time.Second)
+	rabbitConn, err := connectAMQP(10, 1*time.Second)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	// defer rabbitConn.Close()
+	defer rabbitConn.Close()
 	logger.PrintInfo("rabbitmq connection established", nil)
 
+	emitter, err := event.NewEventEmitter(rabbitConn)
+	if err != nil {
+		log.Fatal(err)
+	}
 	expvar.NewString("version").Set(version)
 
 	// Publish the number of active goroutines.
@@ -157,17 +157,24 @@ func main() {
 		return time.Now().Unix()
 	}))
 
-	cld, err := cloudinary.NewFromParams(conf.vars.cldName, conf.vars.cldAPIKey, conf.vars.cldSecret)
+	// connect to the auth servie via grpc
+	conn, err := grpc.Dial("auth-service:50051", grpc.WithInsecure())
 	if err != nil {
-		log.Fatal(err)
+		logger.PrintFatal(err, nil)
 	}
+
+	defer conn.Close()
+
+	u := userspb.NewUserServiceClient(conn)
+
 	app := &application{
-		config: conf,
-		logger: logger,
-		models: data.NewModels(db, rdb),
-		cld:    cld,
-		// amqp:   rabbitConn,
+		config:     conf,
+		logger:     logger,
+		models:     data.NewModels(db, rdb),
+		emitter:    emitter,
+		userClient: u,
 	}
+
 	err = app.serve()
 	if err != nil {
 		logger.PrintFatal(err, nil)
@@ -236,9 +243,6 @@ func openRedis(host, port, username, password string) (*redis.Client, error) {
 
 func loadEnvVars(conf *config) {
 	conf.vars.dbDSN = os.Getenv("GREENLIGHT_DB_DSN")
-	conf.vars.greenlightUserTokenCookie = os.Getenv("GREENLIGHT_TOKEN")
-	conf.vars.greenlightUserIDCookie = os.Getenv("GREENLIGHT_USERID_TOKEN")
-	conf.vars.emailPassword = os.Getenv("EMAIL_PASSWORD")
 	conf.vars.clientUrl = os.Getenv("CLIENT_URL")
 	if conf.vars.clientUrl == "" {
 		conf.vars.clientUrl = "http://localhost:3000"
@@ -248,14 +252,8 @@ func loadEnvVars(conf *config) {
 		conf.vars.redisHost = "localhost"
 	}
 	conf.vars.redisPort = os.Getenv("REDIS_PORT")
-	conf.vars.greenlightEmail = os.Getenv("GREENLIGHT_EMAIL")
-	if conf.vars.greenlightEmail == "" {
-		conf.vars.greenlightEmail = "no_replay@greenlight.com"
-	}
+
 	conf.vars.redisPassword = os.Getenv("REDIS_PASSWORD")
-	conf.vars.cldName = os.Getenv("CLD_NAME")
-	conf.vars.cldAPIKey = os.Getenv("CLD_API_KEY")
-	conf.vars.cldSecret = os.Getenv("CLD_SECRET")
 }
 
 func connectAMQP(counts int64, backOff time.Duration) (*amqp.Connection, error) {

@@ -3,21 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
-	"os"
-	"strconv"
-	"strings"
 
-	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"islamghany.greenlight/internals/data"
 	"islamghany.greenlight/internals/marshing"
 	"islamghany.greenlight/internals/validator"
 )
 
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
-
 	data := envelope{
 		"status": "available",
 		"system_info": map[string]string{
@@ -67,93 +60,26 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 	}
 
 }
-
-const MAX_UPLOAD_SIZE = 1024 * 1024 * 3 // 3MB
-
-// res, err := app.cld.Upload.Destroy(context.Background(), uploader.DestroyParams{
-// 	PublicID: "movies/dkwpwnbbamephv0li1x5",
-// })
-
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
-
-	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-		app.badRequestResponse(w, r, errors.New("The uploaded file is too big. Please choose an file that's less than 1MB in size"))
-		return
+	var input struct {
+		Title   string       `json:"title"`
+		Year    int32        `json:"year"`
+		Runtime data.Runtime `json:"runtime"`
+		Genres  []string     `json:"genres"`
 	}
 
-	// The argument to FormFile must match the name attribute
-	// of the file input on the frontend
-	file, _, err := r.FormFile("image")
+	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
 
-	defer file.Close()
-
-	buff := make([]byte, 512)
-	_, err = file.Read(buff)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	filetype := http.DetectContentType(buff)
-	if filetype != "image/jpeg" && filetype != "image/png" && filetype != "images/jpg" {
-		app.badRequestResponse(w, r, errors.New("The provided file format is not allowed. Please upload a JPEG or PNG image"))
-		return
-	}
-
-	_, err = file.Seek(0, io.SeekStart)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	// Create a temporary file within our temp-images directory that follows
-	// a particular naming pattern
-
-	fileType := strings.Split(filetype, "/")[1]
-	tempFile, err := ioutil.TempFile("uploads", "upload-*."+fileType)
-
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-	defer tempFile.Close()
-
-	// read all of the contents of our uploaded file into a
-	// byte array
-	fileBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-	// write this byte array to our temporary file
-	tempFile.Write(fileBytes)
-	// We can choose to have these files deleted on program close
-	defer os.Remove(tempFile.Name())
-	//r.ParseMultipartForm(0)
-	//input := r.MultipartForm.Value
-
-	year, err := strconv.ParseInt(r.FormValue("year"), 10, 64)
-
-	if err != nil {
-		app.badRequestResponse(w, r, errors.New("runtime must be a number"))
-		return
-	}
-	runtime, err := strconv.ParseInt(r.FormValue("runtime"), 10, 64)
-
-	if err != nil {
-		app.badRequestResponse(w, r, errors.New("runtime must be a number"))
-		return
-	}
+	// Copy the values from the input struct to a new Movie struct.
 	movie := &data.Movie{
-		Title:   r.FormValue("title"),
-		Year:    int32(year),
-		Runtime: data.Runtime(runtime),
-		Genres:  strings.Split(r.FormValue("genres"), ","),
+		Title:   input.Title,
+		Year:    input.Year,
+		Runtime: input.Runtime,
+		Genres:  input.Genres,
 	}
 
 	// Initialize a new Validator.
@@ -165,26 +91,9 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-
-	res, err := app.uploadImage(tempFile.Name(), uploader.UploadParams{
-		Folder: "movies",
-	})
-
+	payload := app.contextGetUser(r)
+	err = app.models.Movies.Insert(movie, payload.User.Id, payload.User.Username)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-	movie.ImageID = res.PublicID
-	movie.ImageURL = res.SecureURL
-
-	user := app.contextGetUser(r)
-
-	err = app.models.Movies.Insert(movie, user.ID)
-	if err != nil {
-		err = app.destroyImage(movie.ImageID)
-		if err != nil {
-			app.logger.PrintError(err, nil)
-		}
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -192,6 +101,8 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 	headers := make(http.Header)
 	headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
 
+	movie.UserName = payload.User.Username
+	movie.UserID = payload.User.Id
 	err = app.writeJson(w, http.StatusCreated, envelope{"movie": movie}, headers)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -305,6 +216,22 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	movie, err := app.models.Movies.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	payload := app.contextGetUser(r)
+
+	if payload.User.Id != movie.UserID {
+		app.notPermittedResponse(w, r)
+		return
+	}
 	err = app.models.Movies.Delete(id)
 	if err != nil {
 		switch {

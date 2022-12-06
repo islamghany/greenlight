@@ -1,9 +1,13 @@
 package event
 
 import (
-	"log"
+	"context"
+	"encoding/json"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"islamghany.greenlight/logspb"
+	"islamghany.greenlight/mailpb"
 )
 
 type Emitter struct {
@@ -41,9 +45,11 @@ func (e *Emitter) Push(event string, severity string) error {
 	}
 	defer ch.Close()
 
-	log.Println("Pushing to channel", event)
-	err = ch.Publish(
-		"logs_topic",
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err = ch.PublishWithContext(
+		ctx,
+		"messages_topic",
 		severity,
 		false,
 		false,
@@ -55,5 +61,59 @@ func (e *Emitter) Push(event string, severity string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (e *Emitter) SendToMailService(m *mailpb.Mail) error {
+
+	mailJSON, err := json.Marshal(m)
+
+	if err != nil {
+		return err
+	}
+
+	payload := Payload{
+		Name: "mail",
+		Data: string(mailJSON),
+	}
+
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	err = e.Push(string(payloadJSON), payload.Name)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *Emitter) SendToLogService(m *logspb.Log) error {
+
+	m.ServiceName = "movies-service"
+
+	logJSON, err := json.Marshal(m)
+
+	if err != nil {
+		return err
+	}
+
+	payload := Payload{
+		Name: "log",
+		Data: string(logJSON),
+	}
+
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	err = e.Push(string(payloadJSON), payload.Name)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

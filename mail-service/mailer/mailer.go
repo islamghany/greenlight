@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"mailer-service/mailpb"
 	"time"
 
 	"github.com/go-mail/mail/v2"
@@ -23,7 +24,7 @@ import (
 var templateFS embed.FS
 
 var (
-	ErrTemplateNotFound = errors.New("Template not found")
+	ErrTemplateNotFound = errors.New("template not found")
 )
 
 type Mail struct {
@@ -69,13 +70,10 @@ func NewMailer(m Mail) *Mailer {
 	}
 }
 
-func (m *Mailer) Send(msg Message) error {
+func (m *Mailer) Send(msg *mailpb.Mail) error {
 
 	if msg.From == "" {
 		msg.From = m.FromAddress
-	}
-	if msg.FromName == "" {
-		msg.FromName = m.FromName
 	}
 
 	tmpl, err := template.New("email").ParseFS(templateFS, "templates/"+msg.TemplateFile)
@@ -103,12 +101,12 @@ func (m *Mailer) Send(msg Message) error {
 	if err != nil {
 		return err
 	}
-	formatedMessageBody := htmlBody.String()
+	// formatedMessageBody := htmlBody.String()
 
-	formatedMessageBody, err = m.inlineCSS(formatedMessageBody)
-	if err != nil {
-		return err
-	}
+	// formatedMessageBody, err = m.inlineCSS(formatedMessageBody)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Use the mail.NewMessage() function to initialize a new mail.Message instance.
 	// Then we use the SetHeader() method to set the email recipient, sender and subject

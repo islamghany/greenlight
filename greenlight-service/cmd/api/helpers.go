@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,13 +9,10 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
-	"islamghany.greenlight/internals/data"
-	"islamghany.greenlight/internals/event"
+	//"islamghany.greenlight/internals/event"
 	"islamghany.greenlight/internals/validator"
 
-	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -162,71 +158,36 @@ func (app *application) background(fn func()) {
 	}()
 }
 
-func (app *application) addCookies(w http.ResponseWriter, name, value string, ttl time.Time) {
-	cookie := http.Cookie{
-		Name:     name,
-		Value:    value,
-		Expires:  ttl,
-		Secure:   true,
-		Path:     "/",
-		HttpOnly: true,
+func (app *application) contains(elems []string, v string) bool {
+	for _, s := range elems {
+		if v == s {
+			return true
+		}
 	}
-	http.SetCookie(w, &cookie)
-}
-func (app *application) removeCookies(w http.ResponseWriter, name string) {
-	cookie := http.Cookie{
-		Name:    name,
-		Value:   "",
-		Path:    "/",
-		Expires: time.Unix(0, 0),
-	}
-	http.SetCookie(w, &cookie)
+	return false
 }
 
-func (app *application) addUserCookies(w http.ResponseWriter, token *data.Token) {
-	app.addCookies(w, app.config.vars.greenlightUserTokenCookie, token.Plaintext, token.Expiry)
-	app.addCookies(w, app.config.vars.greenlightUserIDCookie, fmt.Sprint(token.UserID), token.Expiry)
-}
+// func (app *application) addUserCookies(w http.ResponseWriter, token *data.Token) {
+// 	app.addCookies(w, app.config.vars.greenlightUserTokenCookie, token.Plaintext, token.Expiry)
+// 	app.addCookies(w, app.config.vars.greenlightUserIDCookie, fmt.Sprint(token.UserID), token.Expiry)
+// }
 
-func (app *application) removeUsersCookies(w http.ResponseWriter) {
-	app.removeCookies(w, app.config.vars.greenlightUserTokenCookie)
-	app.removeCookies(w, app.config.vars.greenlightUserIDCookie)
-}
+// func (app *application) removeUsersCookies(w http.ResponseWriter) {
+// 	app.removeCookies(w, app.config.vars.greenlightUserTokenCookie)
+// 	app.removeCookies(w, app.config.vars.greenlightUserIDCookie)
+// }
 
-func (app *application) pushToQueue(name, msg string) error {
-	e, err := event.NewEventEmitter(app.amqp)
+// func (app *application) pushToQueue(name, msg string) error {
+// 	e, err := event.NewEventEmitter(app.amqp)
 
-	if err != nil {
-		return err
-	}
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = e.Push(msg, "mail.SEND")
+// 	err = e.Push(msg, "mail.SEND")
 
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (app *application) uploadImage(name string, params uploader.UploadParams) (*uploader.UploadResult, error) {
-	resp, err := app.cld.Upload.Upload(context.Background(), name, uploader.UploadParams{
-		Folder: "movies",
-	})
-
-	if err != nil {
-
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (app *application) destroyImage(publicID string) error {
-	_, err := app.cld.Upload.Destroy(context.Background(), uploader.DestroyParams{
-		PublicID: publicID,
-	})
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }

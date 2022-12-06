@@ -121,7 +121,7 @@ func PipeSet(rdb *redis.Client, keys []string, values []map[string]interface{}, 
 			return err
 		}
 
-		err = rdb.Expire(ctx, key, ttl).Err()
+		err = pipe.Expire(ctx, key, ttl).Err()
 		if err != nil {
 			return err
 		}

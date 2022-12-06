@@ -9,7 +9,6 @@ import (
 	"strconv"
 )
 
-const webPort = 80
 const gRPCPort = 50051
 
 func main() {
@@ -36,23 +35,9 @@ func main() {
 	}
 	fmt.Println("Running the mail service")
 
-	go server.Start(webPort)
-
 	fmt.Println("Running the mail service grpc")
 	err = server.OpenGRPC(gRPCPort)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
-
-////---	DEVELOPMENT
-// m := mailer.Mail{
-// 	Domain:      "localhost",
-// 	Host:        "localhost",
-// 	Port:        1025,
-// 	Username:    os.Getenv("MAIL_USERNAME"),
-// 	Password:    os.Getenv("MAIL_PASSWORD"),
-// 	Encryption:  "none",
-// 	FromAddress: "john.smith@example.com",
-// 	FromName:    "john Smith",
-// }

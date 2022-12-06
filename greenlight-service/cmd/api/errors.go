@@ -3,9 +3,20 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"islamghany.greenlight/logspb"
 )
 
 func (app *application) logError(r *http.Request, err error) {
+	app.background(func() {
+		err := app.emitter.SendToLogService(&logspb.Log{
+			ErrorMessage: err.Error(),
+			StackTrace:   fmt.Sprintf("request_method: %s, request_url: %s", r.Method, r.URL.String()),
+		})
+		if err != nil {
+			app.logger.PrintError(err, nil)
+		}
+	})
 	app.logger.PrintError(err, map[string]string{
 		"request_method": r.Method,
 		"request_url":    r.URL.String(),

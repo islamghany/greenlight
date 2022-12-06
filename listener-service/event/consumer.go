@@ -1,22 +1,21 @@
 package event
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"listener-service/logspb"
 	"listener-service/mailpb"
 	"log"
-	"net/http"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-	"google.golang.org/grpc"
 )
 
 type Consumer struct {
-	conn      *amqp.Connection
-	queueName string
+	conn       *amqp.Connection
+	mailClient mailpb.MailSeviceClient
+	logClient  logspb.LogServiceClient
 }
 
 type Payload struct {
@@ -24,10 +23,12 @@ type Payload struct {
 	Data string `json:"data"`
 }
 
-func NewConsumer(conn *amqp.Connection) (*Consumer, error) {
+func NewConsumer(conn *amqp.Connection, mailClient mailpb.MailSeviceClient, logClient logspb.LogServiceClient) (*Consumer, error) {
 
 	consumer := &Consumer{
-		conn: conn,
+		conn:       conn,
+		mailClient: mailClient,
+		logClient:  logClient,
 	}
 
 	err := consumer.setup()
@@ -54,6 +55,7 @@ func (c *Consumer) Listen(topics []string) error {
 		return err
 	}
 	defer ch.Close()
+
 	q, err := declareRandomQueue(ch)
 
 	if err != nil {
@@ -64,7 +66,7 @@ func (c *Consumer) Listen(topics []string) error {
 		err = ch.QueueBind(
 			q.Name,
 			s,
-			"logs_topic",
+			"messages_topic",
 			false,
 			nil,
 		)
@@ -81,76 +83,53 @@ func (c *Consumer) Listen(topics []string) error {
 	forerver := make(chan bool)
 	go func() {
 		for d := range messages {
-			go handlePayload(d.Body)
+			fmt.Println("something come !", d.Body, d.RoutingKey)
+			go c.handlePayload(d.Body)
 		}
 	}()
 
-	fmt.Printf("Waiting for message [EXchange, Queue] [logs_topic, %s]\n", q.Name)
+	fmt.Printf("Waiting for message [Exchange, Queue] [messages_topic, %s]\n", q.Name)
 	<-forerver
 
 	return nil
 }
 
-func handlePayload(p []byte) {
-	var err error
+func (c *Consumer) handlePayload(p []byte) {
+	var payload Payload
 
-	err = sendMail(p)
-	if err != nil {
-		log.Println(err)
+	err := json.Unmarshal(p, &payload)
+
+	if payload.Name == "mail" && err == nil {
+		err = c.sendMailViaGRPC([]byte(payload.Data))
+
 	}
-	// switch p.Name {
-	// case "mail", "event":
-	// 	err = sendMailViaGRPC(p)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 	}
-	// default:
-	// 	err = sendMailViaGRPC(p)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 	}
-	// }
-}
-func logEvent(entry Payload) error {
-	return nil
+	if err != nil || payload.Name == "log" {
+		err = c.sendLogViaGRPC([]byte(payload.Data))
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
 }
 
-type MailPayload struct {
-	From         string `json:"from"`
-	To           string `json:"to"`
-	Subject      string `json:"subject"`
-	Message      string `json:"message"`
-	TemplateFile string `json:"templateFile"`
-}
+func (c *Consumer) sendMailViaGRPC(data []byte) error {
 
-func sendMailViaGRPC(payload []byte) error {
-	conn, err := grpc.Dial("mail-service:50051", grpc.WithInsecure())
+	m := mailpb.Mail{}
+	err := json.Unmarshal(data, &m)
 
 	if err != nil {
 		return err
 	}
-
-	defer conn.Close()
-
-	c := mailpb.NewMailSeviceClient(conn)
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-
 	defer cancel()
-	dest := &MailPayload{}
-	err = json.Unmarshal(payload, dest)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
 
-	_, err = c.SendMail(ctx, &mailpb.MailRequest{
+	_, err = c.mailClient.SendMail(ctx, &mailpb.MailRequest{
 		MailEntry: &mailpb.Mail{
-			From:         dest.From,
-			To:           dest.To,
-			Subject:      dest.Subject,
-			TemplateFile: dest.TemplateFile,
-			Message:      dest.Message,
+			From:         m.From,
+			To:           m.To,
+			Subject:      m.Subject,
+			TemplateFile: m.TemplateFile,
+			Data:         m.Data,
 			Attachments:  []string{},
 		},
 	})
@@ -159,30 +138,29 @@ func sendMailViaGRPC(payload []byte) error {
 		return err
 	}
 	return nil
+
 }
-func sendMail(entry []byte) error {
+func (c *Consumer) sendLogViaGRPC(data []byte) error {
 
-	mailServiceURL := "http://mail-service/send"
-
-	// post to mail service
-	request, err := http.NewRequest("POST", mailServiceURL, bytes.NewBuffer(entry))
+	l := logspb.Log{}
+	err := json.Unmarshal(data, &l)
+	fmt.Printf("Something are going to log service \n %+V", l)
 	if err != nil {
 		return err
 	}
 
-	request.Header.Set("Content-Type", "application/json")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	_, err = c.logClient.InsertLog(ctx, &logspb.LogRequest{
+		Log: &logspb.Log{
+			ServiceName:  l.ServiceName,
+			ErrorMessage: l.ErrorMessage,
+			StackTrace:   l.StackTrace,
+		},
+	})
 
-	client := &http.Client{}
-	response, err := client.Do(request)
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
-
-	// make sure we get back the right status code
-	if response.StatusCode != http.StatusCreated {
-		return err
-	}
-
 	return nil
 }

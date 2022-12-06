@@ -26,16 +26,11 @@ type Movie struct {
 	Likes     int64     `json:"likes,omitempty" redis:"likes,omitempty" mapstructure:"likes,omitempty"`
 	UserName  string    `json:"username,omitempty" redis:"username,omitempty" mapstructure:"username,omitempty"`
 	UserID    int64     `json:"user_id,omitempty" redis:"user_id,omitempty" mapstructure:"user_id,omitempty"`
-	ImageID   string    `json:"image_id,omitempty" redis:"image_id,omitempty" mapstructure:"image_id,omitempty"`
-	ImageURL  string    `json:"image_url,omitempty" redis:"image_url,omitempty" mapstructure:"image_url,omitempty"`
 }
 
 func ValidateMovie(v *validator.Validator, movie *Movie) {
 	v.Check(movie.Title != "", "title", "must be provided")
 	v.Check(len(movie.Title) <= 500, "title", "must not be more than 500 bytes long")
-
-	// v.Check(movie.ImageURL != "", "image_url", "must be provided")
-	// v.Check(movie.ImageID != "", "image_image_idURL", "must be provided")
 
 	v.Check(movie.Year != 0, "year", "must be provided")
 	v.Check(movie.Year >= 1888, "year", "must be greater than 1888")
@@ -58,11 +53,16 @@ type MovieModel struct {
 func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
 
 	query := fmt.Sprintf(`
-	SELECT count(*) OVER(), movie_id as id, movies.created_at  as created_at, title, year, runtime, genres, movies.version as version, views.count as view_count, users.name as username, user_id,  
-		(SELECT count(*) FROM likes WHERE movies.id = likes.movie_id) as likes, image_url
+	SELECT count(*) OVER(), 
+	       movies.id as id, movies.created_at  as created_at,
+		   title, year, 
+		   runtime, genres, 
+		   movies.version as version, 
+		   views.count as view_count,
+		   username, user_id,
+		(SELECT count(*) FROM likes WHERE movies.id = likes.movie_id) as likes
 	FROM movies
 	INNER JOIN views ON id = views.movie_id
-	INNER JOIN users ON user_id = users.id
 	WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '') 
 	AND (genres @> $2 OR $2 = '{}')     
 	ORDER BY %s %s, id ASC
@@ -111,15 +111,15 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
 	return movies, metadata, nil
 }
-func (m MovieModel) Insert(movie *Movie, userID int64) error {
+func (m MovieModel) Insert(movie *Movie, userID int64, username string) error {
 
 	query := `
-		INSERT INTO movies (title, year, runtime, genres,user_id,image_id,image_url)
-		VALUES ($1,$2,$3,$4,$5,$6,$7)
+		INSERT INTO movies (title, year, runtime, genres,user_id,username)
+		VALUES ($1,$2,$3,$4,$5,$6)
 		RETURNING id, created_at, version
 	`
 
-	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), userID, movie.ImageID, movie.ImageURL}
+	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), userID, username}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
@@ -150,15 +150,11 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
   genres,
   movies.version as version,
   views.count as count,
-  users.name as username,
-  movies.user_id,
-  image_id,
-  image_url
-  
+  username,
+  user_id
 FROM
   movies
   inner join views on views.movie_id = movies.id
-  inner join users on users.id = user_id
 WHERE
   movies.id = $1;
 	`
@@ -179,8 +175,6 @@ WHERE
 		&movie.Count,
 		&movie.UserName,
 		&movie.UserID,
-		&movie.ImageID,
-		&movie.ImageURL,
 	)
 
 	if err != nil {
@@ -202,7 +196,7 @@ func (m MovieModel) Update(movie *Movie) error {
 
 	query := `
 		UPDATE movies
-		SET title = $1,  year = $2, runtime = $3, genres = $4, version = version + 1, image_id=$7, image_url=$8
+		SET title = $1,  year = $2, runtime = $3, genres = $4, version = version + 1
 		WHERE id = $5 AND version=$6
 		RETURNING version
 	`
@@ -213,8 +207,6 @@ func (m MovieModel) Update(movie *Movie) error {
 		pq.Array(movie.Genres),
 		movie.ID,
 		movie.Version,
-		movie.ImageID,
-		movie.ImageURL,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -254,40 +246,6 @@ func (m MovieModel) Delete(id int64) error {
 
 	if rowsAffected == 0 {
 		return ErrRecordNotFound
-	}
-
-	return nil
-}
-
-func (m UserModel) Update(user *User) error {
-	query := `
-        UPDATE users 
-        SET name = $1, email = $2, password_hash = $3, activated = $4, version = version + 1
-        WHERE id = $5 AND version = $6
-        RETURNING version`
-
-	args := []interface{}{
-		user.Name,
-		user.Email,
-		user.Password.hash,
-		user.Activated,
-		user.ID,
-		user.Version,
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Version)
-	if err != nil {
-		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
-			return ErrDuplicateEmail
-		case errors.Is(err, sql.ErrNoRows):
-			return ErrEditConflict
-		default:
-			return err
-		}
 	}
 
 	return nil
@@ -373,7 +331,7 @@ func (m MovieModel) CacheSetMostLikes(value string) error {
 }
 func (m MovieModel) GetMostLikes() ([]*Movie, error) {
 	query := `
-	select m.id as id, created_at, title, year, runtime, genres, version, m.user_id as user_id , count(m.id) as likes_count,  image_id, image_url
+	select m.id as id, created_at, title, year, runtime, genres, version, m.user_id as user_id , count(m.id) as likes_count  
 	from movies m 
 	join likes l on l.movie_id  = m.id 
 	group by  m.id
@@ -403,8 +361,6 @@ func (m MovieModel) GetMostLikes() ([]*Movie, error) {
 			&movie.Version,
 			&movie.UserID,
 			&movie.Likes,
-			&movie.ImageID,
-			&movie.ImageURL,
 		)
 		if err != nil {
 			return nil, err
@@ -447,14 +403,11 @@ func (m *MovieModel) CacheMost20PercentageView() error {
   genres,
   movies.version as version,
   views.count as count,
-  users.name as username,
-  movies.user_id,
-  image_id,
-  image_url
+  username,
+  movies.user_id
 FROM
   movies
   inner join views on views.movie_id = movies.id
-  inner join users on users.id = user_id
   order by views.count Desc
 limit $1;
 	`
@@ -480,8 +433,6 @@ limit $1;
 			&movie.Count,
 			&movie.UserName,
 			&movie.UserID,
-			&movie.ImageID,
-			&movie.ImageURL,
 		)
 		if err != nil {
 			return err
