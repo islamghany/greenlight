@@ -18,6 +18,15 @@ func IsAnonymous(u *db.User) bool {
 	return u == AnonymousUser
 }
 
+func (server *Server) getCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
+	user := server.contextGetUser(r)
+
+	err := server.writeJson(w, http.StatusOK, envelope{"user": user}, nil)
+	if err != nil {
+		server.serverErrorResponse(w, r, err)
+	}
+}
+
 // TODO : add the register operations in a transaction.
 func (server *Server) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 

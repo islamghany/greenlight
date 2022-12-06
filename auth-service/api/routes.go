@@ -9,10 +9,11 @@ import (
 func (server *Server) routes() http.Handler {
 	router := httprouter.New()
 
-	router.HandlerFunc(http.MethodGet, "/", func(w http.ResponseWriter, r *http.Request) {
+	router.NotFound = http.HandlerFunc(server.notFoundResponse)
 
-		w.Write([]byte("hellow worrld"))
-	})
+	router.MethodNotAllowed = http.HandlerFunc(server.methodNotAllowedResponse)
+
+	router.HandlerFunc(http.MethodGet, "/v1/accounts/users", server.authenticateMiddleware(server.getCurrentUserHandler))
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/users", server.registerUserHandler)
 	router.HandlerFunc(http.MethodGet, "/v1/accounts/users/:id", server.getUserHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/users/logout", server.authenticateMiddleware(server.logoutHandler))
